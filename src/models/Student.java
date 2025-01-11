@@ -7,6 +7,9 @@ public class Student {
     private String dateOfBirth;
 
     // Constructeur
+    public Student() {
+    }
+
     public Student(String fullName, String email, String phoneNumber, String gender, String dateOfBirth) {
         this.fullName = fullName;
         this.email = email;

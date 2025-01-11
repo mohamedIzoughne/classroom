@@ -57,3 +57,7 @@ class id
 - status BOOLEAN NOT NULL, -- TRUE for present, FALSE for absent
 - session_id
 - week number
+
+Plan before Monday:
+today: matieres et classes + consult student + some of dashboard + login + reclamations
+tomorrow: sessions + some of dashboard + attendance

@@ -4,5 +4,6 @@
   "java.project.referencedLibraries": [
     "lib/**/*.jar",
     "c:\\izourne\\projects\\java_project\\mysql-connector-j-9.1.0\\mysql-connector-j-9.1.0.jar"
-  ]
+  ],
+  "cSpell.words": ["classe"]
 }

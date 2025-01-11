@@ -19,6 +19,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mysql.cj.protocol.a.SqlDateValueEncoder;
+
 import db.ClassesDAO;
 import db.SubjectDAO;
 import javafx.scene.paint.Color;
@@ -36,6 +38,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import models.Subject;
+import db.StudentDAO;
 
 public class CurriculumController {
 
@@ -92,192 +95,198 @@ public class CurriculumController {
 
     @FXML
     private Button add2;
-      private void showAddDialog() {
-      // Créer une nouvelle fenêtre (modale)
-      Stage dialog = new Stage();
-      dialog.initModality(Modality.WINDOW_MODAL);
-      dialog.setTitle("Ajouter un Module");
 
-      // Contenu de la fenêtre
-      VBox dialogVBox = new VBox(10);
-      dialogVBox.setStyle("-fx-padding: 10;");
+    private void showAddDialog() {
+        // Créer une nouvelle fenêtre (modale)
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.WINDOW_MODAL);
+        dialog.setTitle("Ajouter un Module");
 
-      // Champs pour entrer les données
-      TextField moduleField = new TextField();
-      moduleField.setPromptText("Module");
+        // Contenu de la fenêtre
+        VBox dialogVBox = new VBox(10);
+        dialogVBox.setStyle("-fx-padding: 10;");
 
-      ComboBox<String> salleField = new ComboBox<>();
-      salleField.getItems().addAll("Salle 1", "Salle 2", "Salle 3", "Amphi A", "Amphi B", "Lab Info 1", "Lab Info 2");
-      salleField.setPromptText("Sélectionnez une salle");
+        // Champs pour entrer les données
+        TextField moduleField = new TextField();
+        moduleField.setPromptText("Module");
 
-      ComboBox<String> classComboBox = new ComboBox<>();
-      try {
-          List<Classes> classes = ClassesDAO.getClasses();
-          for (Classes classe : classes) {
-              classComboBox.getItems().add(classe.getClasse());
-          }
-      } catch (SQLException e) {
-          e.printStackTrace();
-      }
-      classComboBox.setPromptText("Sélectionnez une classe");
+        TextArea descriptionArea = new TextArea();
+        descriptionArea.setPromptText("Description du module");
+        descriptionArea.setPrefRowCount(3);
+        descriptionArea.setWrapText(true);
 
-      Button submitButton = new Button("Submit");
-      submitButton.setOnAction(event -> {
-          // Ajouter une ligne dans la table
-          String module = moduleField.getText();
-          String salle = salleField.getValue();
-          String selectedClass = classComboBox.getValue();
-
-          if (!module.isEmpty() && salle != null && selectedClass != null) {
-              tableView.getItems().add(new Subject(module, salle));
-              SubjectDAO.addSubject(module, selectedClass,  );
-              dialog.close(); // Fermer la fenêtre
-          } else {
-              // Afficher un message d'erreur si les champs ne sont pas remplis
-              Alert alert = new Alert(Alert.AlertType.WARNING);
-              alert.setTitle("Champs obligatoires");
-              alert.setHeaderText(null);
-              alert.setContentText("Veuillez remplir tous les champs.");
-              alert.showAndWait();
-          }
-      });
-
-    dialogVBox.getChildren().addAll(moduleField, salleField, classComboBox, submitButton);
-
-    // Configurer et afficher la scène de la fenêtre
-    Scene dialogScene = new Scene(dialogVBox, 300, 200);
-    dialog.setScene(dialogScene);
-    dialog.show();
-}
-private void showAddDialogForClasses() {
-    // Créer une nouvelle fenêtre (modale)
-    Stage dialog = new Stage();
-    dialog.initModality(Modality.WINDOW_MODAL);
-    dialog.setTitle("Ajouter une Classe");
-
-    // Contenu de la fenêtre
-    VBox dialogVBox = new VBox(10);
-    dialogVBox.setStyle("-fx-padding: 10;");
-
-    // Labels et champs pour entrer les données
-    Label nameLabel = new Label("Nom de la classe:");
-    TextField nameField = new TextField();
-    nameField.setPromptText("Nome");
-
-    Label filiereLabel = new Label("Filière:");
-    ComboBox<String> filiereComboBox = new ComboBox<>();
-    filiereComboBox.getItems().addAll("GI", "GE", "TM", "TCC");
-    filiereComboBox.setPromptText("Sélectionnez une filière");
-
-    Label descriptionLabel = new Label("Description (optionnel):");
-    TextArea descriptionArea = new TextArea();
-    descriptionArea.setPromptText("Description de la classe");
-    descriptionArea.setPrefRowCount(3);
-    descriptionArea.setWrapText(true);
-
-    Button submitButton = new Button("Submit");
-    submitButton.setOnAction(event -> {
-        // Ajouter une ligne dans la table
-        String classe = nameField.getText();
-        String filiere = filiereComboBox.getValue();
-        String description = descriptionArea.getText();
-
-        if (!classe.isEmpty() && filiere != null) {
-            // TableView2.getItems().add(new Classes(classe, filiere));
-            try {
-                ClassesDAO.addClass(classe, filiere, description);
-                TableView2.getItems().add(new Classes(classe, description, filiere));
-            } catch (SQLException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Erreur");
-                alert.setHeaderText(null);
-                alert.setContentText(e.getMessage());
-                alert.showAndWait();
-                e.printStackTrace();
-            } finally {
-                dialog.close(); // Fermer la fenêtre
+        ComboBox<String> classComboBox = new ComboBox<>();
+        try {
+            List<Classes> classes = ClassesDAO.getClasses();
+            for (Classes classe : classes) {
+                classComboBox.getItems().add(classe.getClasse());
             }
-        } else {
-            // Afficher un message d'erreur si les champs ne sont pas remplis
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Champs obligatoires");
-            alert.setHeaderText(null);
-            alert.setContentText("Veuillez remplir tous les champs.");
-            alert.showAndWait();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    });
+        classComboBox.setPromptText("Sélectionnez une classe");
 
-    dialogVBox.getChildren().addAll(
-        nameLabel, nameField,
-        filiereLabel, filiereComboBox,
-        descriptionLabel, descriptionArea,
-        submitButton
-    );
-    // Configurer et afficher la scène de la fenêtre
-    Scene dialogScene = new Scene(dialogVBox, 300, 300);
-    dialog.setScene(dialogScene);
-    dialog.show();
-}
-private void showAddDialogForStudents() {
-    // Créer une nouvelle fenêtre (modale)
-    Stage dialog = new Stage();
-    dialog.initModality(Modality.WINDOW_MODAL);
-    dialog.setTitle("Ajouter un Étudiant");
+        Button submitButton = new Button("Submit");
+        submitButton.setOnAction(event -> {
+            // Ajouter une ligne dans la table
+            String module = moduleField.getText();
+            String selectedClass = classComboBox.getValue();
+            String description = descriptionArea.getText();
 
-    // Contenu de la fenêtre
-    VBox dialogVBox = new VBox(10);
-    dialogVBox.setStyle("-fx-padding: 10;");
+            if (!module.isEmpty() && selectedClass != null) {
+                tableView.getItems().add(new Subject(module, selectedClass));
+                try {
+                    SubjectDAO.addSubject(module, selectedClass, description);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                dialog.close(); // Fermer la fenêtre
+            } else {
+                // Afficher un message d'erreur si les champs ne sont pas remplis
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Champs obligatoires");
+                alert.setHeaderText(null);
+                alert.setContentText("Veuillez remplir tous les champs.");
+                alert.showAndWait();
+            }
+        });
 
-    // Champs pour entrer les données
-    TextField fullNameField = new TextField();
-    fullNameField.setPromptText("Nom complet");
+        dialogVBox.getChildren().addAll(moduleField, classComboBox, descriptionArea, submitButton);
 
-    TextField emailField = new TextField();
-    emailField.setPromptText("Email");
+        // Configurer et afficher la scène de la fenêtre
+        Scene dialogScene = new Scene(dialogVBox, 300, 200);
+        dialog.setScene(dialogScene);
+        dialog.show();
+    }
 
-    TextField phoneNumberField = new TextField();
-    phoneNumberField.setPromptText("Numéro de téléphone");
+    private void showAddDialogForClasses() {
+        // Créer une nouvelle fenêtre (modale)
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.WINDOW_MODAL);
+        dialog.setTitle("Ajouter une Classe");
 
-    TextField genderField = new TextField();
-    genderField.setPromptText("Genre (Male/Female)");
+        // Contenu de la fenêtre
+        VBox dialogVBox = new VBox(10);
+        dialogVBox.setStyle("-fx-padding: 10;");
 
-    TextField dateOfBirthField = new TextField();
-    dateOfBirthField.setPromptText("Date de naissance (ex. 22 mai 2001)");
+        // Labels et champs pour entrer les données
+        Label nameLabel = new Label("Nom de la classe:");
+        TextField nameField = new TextField();
+        nameField.setPromptText("Nome");
 
-    Button submitButton = new Button("Submit");
-    submitButton.setOnAction(event -> {
-        // Récupérer les valeurs saisies
-        String fullName = fullNameField.getText();
-        String email = emailField.getText();
-        String phoneNumber = phoneNumberField.getText();
-        String gender = genderField.getText();
-        String dateOfBirth = dateOfBirthField.getText();
+        Label filiereLabel = new Label("Filière:");
+        ComboBox<String> filiereComboBox = new ComboBox<>();
+        filiereComboBox.getItems().addAll("GI", "GE", "TM", "TCC");
+        filiereComboBox.setPromptText("Sélectionnez une filière");
 
-        if (!fullName.isEmpty() && !email.isEmpty() && !phoneNumber.isEmpty() && !gender.isEmpty()
-                && !dateOfBirth.isEmpty()) {
-            // Ajouter une nouvelle ligne au tableau
-            studentsTable.getItems().add(new Student(fullName, email, phoneNumber, gender, dateOfBirth));
-            dialog.close(); // Fermer la boîte de dialogue
-        } else {
-            // Afficher une alerte si tous les champs ne sont pas remplis
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Champs obligatoires");
-            alert.setHeaderText(null);
-            alert.setContentText("Veuillez remplir tous les champs.");
-            alert.showAndWait();
-        }
-    });
+        Label descriptionLabel = new Label("Description (optionnel):");
+        TextArea descriptionArea = new TextArea();
+        descriptionArea.setPromptText("Description de la classe");
+        descriptionArea.setPrefRowCount(3);
+        descriptionArea.setWrapText(true);
 
-    // Ajouter les champs et le bouton à la boîte de dialogue
-    dialogVBox.getChildren().addAll(fullNameField, emailField, phoneNumberField, genderField, dateOfBirthField,
-            submitButton);
+        Button submitButton = new Button("Submit");
+        submitButton.setOnAction(event -> {
+            // Ajouter une ligne dans la table
+            String classe = nameField.getText();
+            String filiere = filiereComboBox.getValue();
+            String description = descriptionArea.getText();
 
-    // Configurer la scène et afficher la boîte de dialogue
-    Scene dialogScene = new Scene(dialogVBox, 350, 300);
-    dialog.setScene(dialogScene);
-    dialog.show();
-}
+            if (!classe.isEmpty() && filiere != null) {
+                // TableView2.getItems().add(new Classes(classe, filiere));
+                try {
+                    ClassesDAO.addClass(classe, filiere, description);
+                    TableView2.getItems().add(new Classes(classe, description, filiere));
+                } catch (SQLException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erreur");
+                    alert.setHeaderText(null);
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                    e.printStackTrace();
+                } finally {
+                    dialog.close(); // Fermer la fenêtre
+                }
+            } else {
+                // Afficher un message d'erreur si les champs ne sont pas remplis
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Champs obligatoires");
+                alert.setHeaderText(null);
+                alert.setContentText("Veuillez remplir tous les champs.");
+                alert.showAndWait();
+            }
+        });
 
+        dialogVBox.getChildren().addAll(
+                nameLabel, nameField,
+                filiereLabel, filiereComboBox,
+                descriptionLabel, descriptionArea,
+                submitButton);
+        // Configurer et afficher la scène de la fenêtre
+        Scene dialogScene = new Scene(dialogVBox, 300, 300);
+        dialog.setScene(dialogScene);
+        dialog.show();
+    }
+
+    private void showAddDialogForStudents() {
+        // Créer une nouvelle fenêtre (modale)
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.WINDOW_MODAL);
+        dialog.setTitle("Ajouter un Étudiant");
+
+        // Contenu de la fenêtre
+        VBox dialogVBox = new VBox(10);
+        dialogVBox.setStyle("-fx-padding: 10;");
+
+        // Champs pour entrer les données
+        TextField fullNameField = new TextField();
+        fullNameField.setPromptText("Nom complet");
+
+        TextField emailField = new TextField();
+        emailField.setPromptText("Email");
+
+        TextField phoneNumberField = new TextField();
+        phoneNumberField.setPromptText("Numéro de téléphone");
+
+        TextField genderField = new TextField();
+        genderField.setPromptText("Genre (Male/Female)");
+
+        TextField dateOfBirthField = new TextField();
+        dateOfBirthField.setPromptText("Date de naissance (ex. 22 mai 2001)");
+
+        Button submitButton = new Button("Submit");
+        submitButton.setOnAction(event -> {
+            // Récupérer les valeurs saisies
+            String fullName = fullNameField.getText();
+            String email = emailField.getText();
+            String phoneNumber = phoneNumberField.getText();
+            String gender = genderField.getText();
+            String dateOfBirth = dateOfBirthField.getText();
+
+            if (!fullName.isEmpty() && !email.isEmpty() && !phoneNumber.isEmpty() && !gender.isEmpty()
+                    && !dateOfBirth.isEmpty()) {
+                // Ajouter une nouvelle ligne au tableau
+                studentsTable.getItems().add(new Student(fullName, email, phoneNumber, gender, dateOfBirth));
+                dialog.close(); // Fermer la boîte de dialogue
+            } else {
+                // Afficher une alerte si tous les champs ne sont pas remplis
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Champs obligatoires");
+                alert.setHeaderText(null);
+                alert.setContentText("Veuillez remplir tous les champs.");
+                alert.showAndWait();
+            }
+        });
+
+        // Ajouter les champs et le bouton à la boîte de dialogue
+        dialogVBox.getChildren().addAll(fullNameField, emailField, phoneNumberField, genderField, dateOfBirthField,
+                submitButton);
+
+        // Configurer la scène et afficher la boîte de dialogue
+        Scene dialogScene = new Scene(dialogVBox, 350, 300);
+        dialog.setScene(dialogScene);
+        dialog.show();
+    }
 
     public void initialize() {
         // loadFXML("students.fxml");
@@ -289,11 +298,13 @@ private void showAddDialogForStudents() {
         moduleColumn.setCellValueFactory(new PropertyValueFactory<>("module"));
         classColumn.setCellValueFactory(new PropertyValueFactory<>("classe"));
 
-        // // Ajouter des données
-        ObservableList<Subject> data = FXCollections.observableArrayList(
-                new Subject("JavaScript", "Salle 0-1"),
-                new Subject("Html & Css", "Salle 0-1"),
-                new Subject("JavaScript", "Salle 0-1"));
+        List<Subject> subjectsData = new ArrayList<>();
+        try {
+            subjectsData = SubjectDAO.getAllSubjects();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        ObservableList<Subject> data = FXCollections.observableArrayList(subjectsData);
 
         moduleColumn.setStyle("-fx-alignment: CENTER;");
         classColumn.setStyle("-fx-alignment: CENTER;");
@@ -301,7 +312,6 @@ private void showAddDialogForStudents() {
 
         tableView.setItems(data);
 
-        
         // // Ajouter les boutons dans la colonne "Actions"
         actionsColumn.setCellFactory(column -> new TableCell<>() {
             private final Button editButton = new Button();
@@ -326,7 +336,72 @@ private void showAddDialogForStudents() {
 
                 editButton.setOnAction(event -> {
                     Subject module = getTableView().getItems().get(getIndex());
-                    System.out.println("Edit: " + module.getModule());
+                    Dialog<Subject> dialog = new Dialog<>();
+                    dialog.setTitle("Modifier le module");
+                    dialog.setHeaderText("Modifier les informations du module");
+
+                    ButtonType saveButtonType = new ButtonType("Enregistrer");
+                    dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+                    GridPane grid = new GridPane();
+                    grid.setHgap(10);
+                    grid.setVgap(10);
+                    grid.setPadding(new Insets(20, 150, 10, 10));
+
+                    TextField moduleNameField = new TextField(module.getModule());
+                    String oldSubjectName = module.getModule();
+                    // ComboBox<String> classeCombobox = new ComboBox<>();
+                    ComboBox<String> classComboBox = new ComboBox<>();
+                    try {
+                        List<Classes> classes = ClassesDAO.getClasses();
+                        for (Classes classe : classes) {
+                            classComboBox.getItems().add(classe.getClasse());
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    classComboBox.setPromptText("Sélectionnez une classe");
+                    classComboBox.setValue(module.getClasse());
+
+                    grid.add(new Label("Nom du module:"), 0, 0);
+                    grid.add(moduleNameField, 1, 0);
+                    grid.add(new Label("Classe:"), 0, 1);
+                    grid.add(classComboBox, 1, 1);
+                    grid.add(new Label("Description:"), 0, 2);
+                    TextArea descriptionArea = new TextArea();
+                    descriptionArea.setPrefRowCount(3);
+                    descriptionArea.setPrefColumnCount(20);
+                    grid.add(descriptionArea, 1, 2);
+                    dialog.getDialogPane().setContent(grid);
+
+                    dialog.setResultConverter(dialogButton -> {
+                        if (dialogButton == saveButtonType) {
+                            try {
+                                String selectedClass = classComboBox.getValue();
+                                String selectedSubject = moduleNameField.getText();
+                                module.setModule(selectedSubject);
+                                module.setClasse(selectedClass);
+
+                                SubjectDAO.updateSubject(oldSubjectName, selectedSubject, selectedClass, "");
+
+                                // SubjectDAO.updateSubject(module, getIndex(), module.getClasse());
+
+                                getTableView().refresh();
+                            } catch (Exception e) {
+                                System.out.println("The erro is about:" + e.getMessage());
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Erreur");
+                                alert.setHeaderText(null);
+                                alert.setContentText("Erreur lors de la modification du module.");
+                                alert.showAndWait();
+                            } finally {
+                                dialog.close();
+                            }
+                        }
+                        return null;
+                    });
+
+                    dialog.showAndWait();
                 });
 
                 deleteButton.setOnAction(event -> {
@@ -346,24 +421,22 @@ private void showAddDialogForStudents() {
                     setGraphic(actions);
                 }
             }
-        });        
-        add.setOnAction(event -> showAddDialog());
-        /*-------------------------------------------------------------
+        });
+        add.setOnAction(event -> showAddDialog()); /*-------------------------------------------------------------
          * -------------------------------------------------------------
          */
         /*------------ICI les donnees de tableau 2------------- */
         name.setCellValueFactory(new PropertyValueFactory<>("classe"));
         field.setCellValueFactory(new PropertyValueFactory<>("filiere"));
 
-        
-            List<Classes> classes = new ArrayList<>();
-            try {
-                classes = ClassesDAO.getClasses();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            
-            ObservableList<Classes> data1 = FXCollections.observableArrayList(classes);
+        List<Classes> classes = new ArrayList<>();
+        try {
+            classes = ClassesDAO.getClasses();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        ObservableList<Classes> data1 = FXCollections.observableArrayList(classes);
         TableView2.setItems(data1);
         name.setStyle("-fx-alignment: CENTER;");
         field.setStyle("-fx-alignment: CENTER;");
@@ -372,8 +445,17 @@ private void showAddDialogForStudents() {
         actions1.setCellFactory(column -> new TableCell<Classes, Void>() {
             private final Button editClasseButton = new Button();
             private final Button deleteClasseButton = new Button();
+            private final Button viewStudentsButton = new Button();
 
             {
+                // Configuration du bouton View Students
+                ImageView viewStudentsIcon = new ImageView(
+                        new Image(getClass().getResource("./images/mdi_eye-outline.png").toExternalForm()));
+                viewStudentsIcon.setFitHeight(16);
+                viewStudentsIcon.setFitWidth(16);
+                viewStudentsButton.setGraphic(viewStudentsIcon);
+                viewStudentsButton.setPrefWidth(55);
+                viewStudentsButton.setTranslateX(5);
                 // Configuration du bouton Modifier pour les Classes
                 ImageView editClasseIcon = new ImageView(
                         new Image(getClass().getResource("/images/mynaui_edit.png").toExternalForm()));
@@ -382,6 +464,22 @@ private void showAddDialogForStudents() {
                 editClasseButton.setGraphic(editClasseIcon);
                 editClasseButton.setPrefWidth(55);
                 editClasseButton.setTranslateX(5);
+
+                viewStudentsButton.setOnAction(event -> {
+                    Classes selectedClasse = getTableView().getItems().get(getIndex());
+                    try {
+                        List<Student> students = StudentDAO.getStudentsByClassName(selectedClasse.getClasse());
+                        ObservableList<Student> studentData = FXCollections.observableArrayList(students);
+                        studentsTable.setItems(studentData);
+                    } catch (SQLException e) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+                        alert.setHeaderText("Database Error");
+                        alert.setContentText("An error occurred while fetching students: " + e.getMessage());
+                        alert.showAndWait();
+                        e.printStackTrace();
+                    }
+                });
 
                 editClasseButton.setOnAction(event -> {
                     Classes selectedClasse = getTableView().getItems().get(getIndex());
@@ -397,8 +495,14 @@ private void showAddDialogForStudents() {
                     grid.setVgap(10);
                     grid.setPadding(new Insets(20, 150, 10, 10));
 
-                    TextField classNameField = new TextField("");
-                    TextField filiereField = new TextField(selectedClasse.getFiliere());
+                    TextField classNameField = new TextField(selectedClasse.getClasse());
+                    ComboBox<String> filiereComboBox = new ComboBox<>();
+                    filiereComboBox.getItems().addAll(
+                            "GI",
+                            "GE",
+                            "TM",
+                            "TCC");
+                    filiereComboBox.setValue(selectedClasse.getFiliere());
                     TextArea descriptionField = new TextArea("optionnel");
                     descriptionField.setPrefRowCount(3);
                     descriptionField.setWrapText(true);
@@ -406,7 +510,7 @@ private void showAddDialogForStudents() {
                     grid.add(new Label("Nom de la classe:"), 0, 0);
                     grid.add(classNameField, 1, 0);
                     grid.add(new Label("Filière:"), 0, 1);
-                    grid.add(filiereField, 1, 1);
+                    grid.add(filiereComboBox, 1, 1);
                     grid.add(new Label("Description:"), 0, 2);
                     grid.add(descriptionField, 1, 2);
 
@@ -417,13 +521,14 @@ private void showAddDialogForStudents() {
                             try {
                                 String oldClassName = selectedClasse.getClasse();
                                 String newClasseName = classNameField.getText();
-                                String newFiliere = filiereField.getText();
+                                String newFiliere = filiereComboBox.getValue();
                                 String newDescription = descriptionField.getText();
                                 selectedClasse.setClasse(newClasseName);
                                 selectedClasse.setFiliere(newFiliere);
                                 ClassesDAO.updateClassByName(oldClassName, newClasseName, newFiliere, newDescription);
                                 getTableView().refresh();
-                                return selectedClasse;                            } catch (Exception e) {
+                                return selectedClasse;
+                            } catch (Exception e) {
                                 Alert alert = new Alert(Alert.AlertType.ERROR);
                                 alert.setTitle("Error");
                                 alert.setHeaderText("Database Error");
@@ -438,7 +543,6 @@ private void showAddDialogForStudents() {
 
                     dialog.showAndWait();
                 });
-
                 // Configuration du bouton Supprimer pour les Classes
                 ImageView deleteClasseIcon = new ImageView(
                         new Image(getClass().getResource("/images/Vector.png").toExternalForm()));
@@ -453,7 +557,7 @@ private void showAddDialogForStudents() {
                     try {
                         ClassesDAO.removeClassByName(selectedClasse.getClasse());
                         getTableView().getItems().remove(selectedClasse);
-                    } catch(SQLException e) {
+                    } catch (SQLException e) {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setTitle("Error");
                         alert.setHeaderText("Database Error");
@@ -471,7 +575,7 @@ private void showAddDialogForStudents() {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    HBox actionsBox = new HBox(editClasseButton, deleteClasseButton);
+                    HBox actionsBox = new HBox(editClasseButton, viewStudentsButton, deleteClasseButton);
                     actionsBox.setSpacing(10);
                     setGraphic(actionsBox);
                 }

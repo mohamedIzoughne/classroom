@@ -3,6 +3,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Date;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+import models.Student;
 
 public class StudentDAO {
     private static Connection connection = DatabaseHelper.connect();
@@ -71,5 +75,29 @@ public class StudentDAO {
                 System.out.println("Error updating student: " + e.getMessage());
             }
         }
+    }
+
+    public static List<Student> getStudentsByClassName(String className) throws SQLException {
+        List<Student> students = new ArrayList<>();
+        if (connection != null) {
+            String query = "SELECT * from students where class_name = ?";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, className);
+                ResultSet resultSet = statement.executeQuery();
+                while (resultSet.next()) {
+                    Student student = new Student();
+                    student.setFullName(resultSet.getString("name"));
+                    student.setEmail(resultSet.getString("email"));
+                    student.setPhoneNumber(resultSet.getString("phoneNumber"));
+                    student.setGender(resultSet.getString("gender"));
+                    // student..(resultSet.getDate("date_of_birth"));
+                    // student.set(resultSet.getInt("class_name"));
+                    students.add(student);
+                }
+            } catch (SQLException e) {
+                System.out.println("Error getting students by class name: " + e.getMessage());
+            }
+        }
+        return students;
     }
 }

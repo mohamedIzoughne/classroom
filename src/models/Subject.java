@@ -13,5 +13,5 @@ package models;
         public void setModule(String module) { this.module = module; }
     
         public String getClasse() { return classe; }
-        public void setClasse(String classe) { this.classe = classe; }
+        public void setClasse(String classe) { this.classe = classe; }    
     }
