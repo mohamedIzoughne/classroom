@@ -11,17 +11,20 @@ import models.Student;
 public class StudentDAO {
     private static Connection connection = DatabaseHelper.connect();
 
-    public static void addStudent(String name, String email, String phoneNumber, String gender, Date dateOfBirth, Integer classId) {
+    public static void addStudent(String name, String email, String phoneNumber, String gender, String dateOfBirth, String className) {
         if (connection != null) {
-            String query = "INSERT INTO students (name, email, phoneNumber, gender, date_of_birth, class_id) VALUES (?, ?, ?, ?, ?, ?)";
+            String query = "INSERT INTO students (name, email, phoneNumber, gender, date_of_birth, class_name) VALUES (?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
+
                 statement.setString(1, name);
                 statement.setString(2, email);
                 statement.setString(3, phoneNumber);
                 statement.setString(4, gender);
-                statement.setDate(5, dateOfBirth);
-                if (classId != null) {
-                    statement.setInt(6, classId);
+                statement.setString(5, dateOfBirth);
+                statement.setString(5, className);
+
+                if (className != null) {
+                    statement.setString(6, className);
                 } else {
                     statement.setNull(6, java.sql.Types.INTEGER);
                 }

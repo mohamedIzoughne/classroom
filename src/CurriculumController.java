@@ -8,6 +8,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
@@ -95,6 +96,8 @@ public class CurriculumController {
 
     @FXML
     private Button add2;
+
+    private String viewedClass;
 
     private void showAddDialog() {
         // Créer une nouvelle fenêtre (modale)
@@ -231,6 +234,16 @@ public class CurriculumController {
     private void showAddDialogForStudents() {
         // Créer une nouvelle fenêtre (modale)
         Stage dialog = new Stage();
+
+        if (this.viewedClass == null || this.viewedClass.trim().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Erreur");
+            alert.setHeaderText(null);
+            alert.setContentText("Veuillez d'abord sélectionner/voir une classe.");
+            alert.showAndWait();
+            return;
+        }
+
         dialog.initModality(Modality.WINDOW_MODAL);
         dialog.setTitle("Ajouter un Étudiant");
 
@@ -251,8 +264,8 @@ public class CurriculumController {
         TextField genderField = new TextField();
         genderField.setPromptText("Genre (Male/Female)");
 
-        TextField dateOfBirthField = new TextField();
-        dateOfBirthField.setPromptText("Date de naissance (ex. 22 mai 2001)");
+        DatePicker dateOfBirthField = new DatePicker();
+        dateOfBirthField.setPromptText("Date de naissance");
 
         Button submitButton = new Button("Submit");
         submitButton.setOnAction(event -> {
@@ -261,12 +274,13 @@ public class CurriculumController {
             String email = emailField.getText();
             String phoneNumber = phoneNumberField.getText();
             String gender = genderField.getText();
-            String dateOfBirth = dateOfBirthField.getText();
+            String dateOfBirth = dateOfBirthField.getValue().toString();
 
             if (!fullName.isEmpty() && !email.isEmpty() && !phoneNumber.isEmpty() && !gender.isEmpty()
                     && !dateOfBirth.isEmpty()) {
                 // Ajouter une nouvelle ligne au tableau
                 studentsTable.getItems().add(new Student(fullName, email, phoneNumber, gender, dateOfBirth));
+                StudentDAO.addStudent(fullName, email, phoneNumber, gender, dateOfBirth, this.viewedClass);
                 dialog.close(); // Fermer la boîte de dialogue
             } else {
                 // Afficher une alerte si tous les champs ne sont pas remplis
@@ -467,6 +481,7 @@ public class CurriculumController {
 
                 viewStudentsButton.setOnAction(event -> {
                     Classes selectedClasse = getTableView().getItems().get(getIndex());
+                    CurriculumController.this.viewedClass = selectedClasse.getClasse();
                     try {
                         List<Student> students = StudentDAO.getStudentsByClassName(selectedClasse.getClasse());
                         ObservableList<Student> studentData = FXCollections.observableArrayList(students);
@@ -593,11 +608,7 @@ public class CurriculumController {
         genderColumn.setCellValueFactory(new PropertyValueFactory<>("gender"));
         dateOfBirthColumn.setCellValueFactory(new PropertyValueFactory<>("dateOfBirth"));
 
-        ObservableList<Student> studentData = FXCollections.observableArrayList(
-                new Student("Mohamed Izourne", "izourne@gmail.com", "+212 683925793", "Male", "22 mai 2001"),
-                new Student("Mohamed Izourne", "izourne@gmail.com", "+212 683925793", "Male", "22 mai 2001"),
-                new Student("Mohamed Izourne", "izourne@gmail.com", "+212 683925793", "Male", "22 mai 2001"),
-                new Student("Mohamed Izourne", "izourne@gmail.com", "+212 683925793", "Male", "22 mai 2001"));
+        ObservableList<Student> studentData = FXCollections.observableArrayList();
 
         // Ajouter les données dans la TableView
         studentsTable.setItems(studentData);
