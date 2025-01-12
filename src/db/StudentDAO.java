@@ -1,4 +1,5 @@
 package db;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -11,7 +12,8 @@ import models.Student;
 public class StudentDAO {
     private static Connection connection = DatabaseHelper.connect();
 
-    public static void addStudent(String name, String email, String phoneNumber, String gender, String dateOfBirth, String className) {
+    public static void addStudent(String name, String email, String phoneNumber, String gender, String dateOfBirth,
+            String className) {
         if (connection != null) {
             String query = "INSERT INTO students (name, email, phoneNumber, gender, date_of_birth, class_name) VALUES (?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -21,7 +23,6 @@ public class StudentDAO {
                 statement.setString(3, phoneNumber);
                 statement.setString(4, gender);
                 statement.setString(5, dateOfBirth);
-                statement.setString(5, className);
 
                 if (className != null) {
                     statement.setString(6, className);
@@ -53,7 +54,8 @@ public class StudentDAO {
         }
     }
 
-    public static void updateStudent(int studentId, String name, String email, String phoneNumber, String gender, Date dateOfBirth, Integer classId) {
+    public static void updateStudent(int studentId, String name, String email, String phoneNumber, String gender,
+            Date dateOfBirth, Integer classId) {
         if (connection != null) {
             String query = "UPDATE students SET name = ?, email = ?, phoneNumber = ?, gender = ?, date_of_birth = ?, class_id = ? WHERE id = ?";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -93,7 +95,7 @@ public class StudentDAO {
                     student.setEmail(resultSet.getString("email"));
                     student.setPhoneNumber(resultSet.getString("phoneNumber"));
                     student.setGender(resultSet.getString("gender"));
-                    // student..(resultSet.getDate("date_of_birth"));
+                    student.setDateOfBirth(resultSet.getString("date_of_birth"));
                     // student.set(resultSet.getInt("class_name"));
                     students.add(student);
                 }
@@ -102,5 +104,66 @@ public class StudentDAO {
             }
         }
         return students;
+    }
+
+    public static int[] getStudentCountsByGender() {
+        int[] counts = new int[] { 0, 0 };
+        if (connection != null) {
+            String query = "SELECT gender, COUNT(*) as count FROM students GROUP BY gender";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                ResultSet resultSet = statement.executeQuery();
+                while (resultSet.next()) {
+                    String gender = resultSet.getString("gender");
+                    int count = resultSet.getInt("count");
+                    if ("Male".equalsIgnoreCase(gender)) {
+                        counts[0] = count;
+                    } else if ("Female".equalsIgnoreCase(gender)) {
+                        counts[1] = count;
+                    }
+                }
+            } catch (SQLException e) {
+                System.out.println("Error getting number of students by gender: " + e.getMessage());
+            }
+        }
+        return counts;
+    }
+
+    public static int[] getStudentCountsByGender(String className) {
+        int[] counts = new int[] { 0, 0 };
+        if (connection != null) {
+            String query = "SELECT gender, COUNT(*) as count FROM students where class_name = ? GROUP BY gender";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, className);
+                ResultSet resultSet = statement.executeQuery();
+                while (resultSet.next()) {
+                    String gender = resultSet.getString("gender");
+                    int count = resultSet.getInt("count");
+                    if ("Male".equalsIgnoreCase(gender)) {
+                        counts[0] = count;
+                    } else if ("Female".equalsIgnoreCase(gender)) {
+                        counts[1] = count;
+                    }
+                }
+            } catch (SQLException e) {
+                System.out.println("Error getting number of students by gender: " + e.getMessage());
+            }
+        }
+        return counts;
+    }
+
+    public static String getNumberOfStudents() {
+        String count = "0";
+        if (connection != null) {
+            String query = "SELECT COUNT(name) as count FROM students";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    count = resultSet.getString("count");
+                }
+            } catch (SQLException e) {
+                System.out.println("Error getting number of students: " + e.getMessage());
+            }
+        }
+        return count;
     }
 }

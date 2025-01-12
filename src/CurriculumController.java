@@ -261,8 +261,9 @@ public class CurriculumController {
         TextField phoneNumberField = new TextField();
         phoneNumberField.setPromptText("Numéro de téléphone");
 
-        TextField genderField = new TextField();
-        genderField.setPromptText("Genre (Male/Female)");
+        ComboBox<String> genderComboBox = new ComboBox<>();
+        genderComboBox.getItems().addAll("Male", "Female");
+        genderComboBox.setPromptText("Genre");
 
         DatePicker dateOfBirthField = new DatePicker();
         dateOfBirthField.setPromptText("Date de naissance");
@@ -273,10 +274,11 @@ public class CurriculumController {
             String fullName = fullNameField.getText();
             String email = emailField.getText();
             String phoneNumber = phoneNumberField.getText();
-            String gender = genderField.getText();
+
+            String gender = genderComboBox.getValue();
             String dateOfBirth = dateOfBirthField.getValue().toString();
 
-            if (!fullName.isEmpty() && !email.isEmpty() && !phoneNumber.isEmpty() && !gender.isEmpty()
+            if (!fullName.isEmpty() && !email.isEmpty() && !phoneNumber.isEmpty() && gender != null
                     && !dateOfBirth.isEmpty()) {
                 // Ajouter une nouvelle ligne au tableau
                 studentsTable.getItems().add(new Student(fullName, email, phoneNumber, gender, dateOfBirth));
@@ -293,13 +295,15 @@ public class CurriculumController {
         });
 
         // Ajouter les champs et le bouton à la boîte de dialogue
-        dialogVBox.getChildren().addAll(fullNameField, emailField, phoneNumberField, genderField, dateOfBirthField,
+
+        dialogVBox.getChildren().addAll(fullNameField, emailField, phoneNumberField, genderComboBox, dateOfBirthField,
                 submitButton);
 
         // Configurer la scène et afficher la boîte de dialogue
         Scene dialogScene = new Scene(dialogVBox, 350, 300);
         dialog.setScene(dialogScene);
         dialog.show();
+
     }
 
     public void initialize() {
