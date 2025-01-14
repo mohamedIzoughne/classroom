@@ -97,10 +97,8 @@
                         <Font size="18.0" />
                      </font>
                   </Label>
-                  <MenuButton layoutX="283.0" layoutY="18.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="80.0" text="cette semaine" textFill="#8a8787">
+                  <MenuButton fx:id="weekMenuButton" layoutX="283.0" layoutY="18.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="80.0" text="cette semaine" textFill="#8a8787">
                     <items>
-                      <MenuItem mnemonicParsing="false" text="Action 1" />
-                      <MenuItem mnemonicParsing="false" text="Action 2" />
                     </items>
                      <font>
                         <Font size="9.0" />

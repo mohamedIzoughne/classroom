@@ -3,8 +3,8 @@ package models;
 public class Session {
     private int id;
     private String name;
-    private int subjectId;
-    private int roomId;
+    private String subjectName;
+    private String roomName;
     private String day;
     private String hours;
     private boolean status;
@@ -28,20 +28,20 @@ public class Session {
         this.name = name;
     }
 
-    public int getSubjectId() {
-        return subjectId;
+    public String getSubjectName() {
+        return subjectName;
     }
 
-    public void setSubjectId(int subjectId) {
-        this.subjectId = subjectId;
+    public void setSubjectId(String subjectName) {
+        this.subjectName = subjectName;
     }
 
-    public int getRoomId() {
-        return roomId;
+    public String getRoomName() {
+        return roomName;
     }
 
-    public void setRoomId(int roomId) {
-        this.roomId = roomId;
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
     }
 
     public String getDay() {

@@ -1,120 +1,168 @@
 package db;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class AttendanceDAO {
-    private Connection connection;
-    
-    public AttendanceDAO() {
-        this.connection = DatabaseHelper.connect();
-    }
-    
-    public void markAttendance(int studentId, int sessionId, boolean status, int weekNumber) throws SQLException {
-        String sql = "INSERT INTO presence (student_id, session_id, status, week_number) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, studentId);
-            stmt.setInt(2, sessionId);
-            stmt.setBoolean(3, status);
-            stmt.setInt(4, weekNumber);
-            stmt.executeUpdate();
-        }
-    }
-    
-    public boolean getAttendanceStatus(int studentId, int sessionId, int weekNumber) throws SQLException {
-        String sql = "SELECT status FROM presence WHERE student_id = ? AND session_id = ? AND week_number = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, studentId);
-            stmt.setInt(2, sessionId);
-            stmt.setInt(3, weekNumber);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getBoolean("status");
-            }
-            return false;
-        }
-    }
-    
-    public Map<Integer, Integer> getStudentAttendanceStats(int studentId, int weekNumber) throws SQLException {
-        Map<Integer, Integer> stats = new HashMap<>();
-        String sql = "SELECT session_id, COUNT(*) as attendance_count FROM presence WHERE student_id = ? AND week_number = ? AND status = true GROUP BY session_id";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, studentId);
-            stmt.setInt(2, weekNumber);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                stats.put(rs.getInt("session_id"), rs.getInt("attendance_count"));
+    private static Connection connection = DatabaseHelper.connect();
+
+    public static Map<String, Map<String, Integer>> getLastWeekAttendanceRateByClass(String className)
+            throws SQLException {
+        Map<String, Map<String, Integer>> results = new HashMap<>();
+
+        String query = "SELECT DAYNAME(a.date) AS day_name, " +
+                "COUNT(CASE WHEN a.status = 1 THEN 1 END) AS present_count, " +
+                "COUNT(CASE WHEN a.status = 0 THEN 1 END) AS absent_count, " +
+                "COUNT(*) AS total_count " +
+                "FROM attendance a " +
+                "JOIN sessions s ON a.session_name = s.name " +
+                "JOIN students st ON a.student_name = st.name " +
+                "WHERE a.date BETWEEN DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) + 7 DAY) " +
+                "AND DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) + 1 DAY) " +
+                "AND st.class_name = ? " +
+                "GROUP BY DAYNAME(a.date) " +
+                "ORDER BY FIELD(DAYNAME(a.date), 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, className);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Integer> row = new HashMap<>();
+                    row.put("present_count", rs.getInt("present_count"));
+                    row.put("absent_count", rs.getInt("absent_count"));
+                    row.put("total_count", rs.getInt("total_count"));
+                    results.put(rs.getString("day_name"), row);
+                }
             }
         }
-        return stats;
+
+        return results;
     }
-    
-    public List<Map<String, Object>> getDailyAttendance(String day, int weekNumber) throws SQLException {
-        List<Map<String, Object>> attendanceList = new ArrayList<>();
-        String sql = "SELECT p.*, s.name as student_name, ses.name as session_name " +
-                    "FROM presence p " +
-                    "JOIN students s ON p.student_id = s.id " +
-                    "JOIN sessions ses ON p.session_id = ses.id " +
-                    "WHERE ses.day = ? AND p.week_number = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, day);
-            stmt.setInt(2, weekNumber);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Map<String, Object> record = new HashMap<>();
-                record.put("student_id", rs.getInt("student_id"));
-                record.put("student_name", rs.getString("student_name"));
-                record.put("session_id", rs.getInt("session_id"));
-                record.put("session_name", rs.getString("session_name"));
-                record.put("status", rs.getBoolean("status"));
-                attendanceList.add(record);
+
+        public static Map<String, Map<String, Integer>> getLastWeekAttendanceRateByClass(String className, int weekNumber)
+                throws SQLException {
+            Map<String, Map<String, Integer>> results = new HashMap<>();
+
+            String query = "SELECT DAYNAME(a.date) AS day_name, " +
+                    "COUNT(CASE WHEN a.status = 1 THEN 1 END) AS present_count, " +
+                    "COUNT(CASE WHEN a.status = 0 THEN 1 END) AS absent_count, " +
+                    "COUNT(*) AS total_count " +
+                    "FROM attendance a " +
+                    "JOIN sessions s ON a.session_name = s.name " +
+                    "JOIN students st ON a.student_name = st.name " +
+                    "WHERE WEEK(a.date, 1) = ? " +
+                    "AND st.class_name = ? " +
+                    "GROUP BY DAYNAME(a.date) " +
+                    "ORDER BY FIELD(DAYNAME(a.date), 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')";
+
+            try (PreparedStatement stmt = connection.prepareStatement(query)) {
+                stmt.setInt(1, weekNumber);
+                stmt.setString(2, className);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        Map<String, Integer> row = new HashMap<>();
+                        row.put("present_count", rs.getInt("present_count"));
+                        row.put("absent_count", rs.getInt("absent_count"));
+                        row.put("total_count", rs.getInt("total_count"));
+                        results.put(rs.getString("day_name"), row);
+                    }
+                }
             }
-        }
-        return attendanceList;
-    }
-    
-    public List<Map<String, Object>> getClassAttendance(int classId, int weekNumber) throws SQLException {
-        List<Map<String, Object>> classAttendance = new ArrayList<>();
-        String sql = "SELECT p.*, s.name as student_name, ses.name as session_name " +
-                    "FROM presence p " +
-                    "JOIN students s ON p.student_id = s.id " +
-                    "JOIN sessions ses ON p.session_id = ses.id " +
-                    "WHERE s.class_id = ? AND p.week_number = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, classId);
-            stmt.setInt(2, weekNumber);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Map<String, Object> record = new HashMap<>();
-                record.put("student_id", rs.getInt("student_id"));
-                record.put("student_name", rs.getString("student_name"));
-                record.put("session_id", rs.getInt("session_id"));
-                record.put("session_name", rs.getString("session_name"));
-                record.put("status", rs.getBoolean("status"));
-                attendanceList.add(record);
-            }
-        }
-        return classAttendance;
-    }
-    
-    public void deleteAttendance(int studentId, int sessionId, int weekNumber) throws SQLException {
-        String sql = "DELETE FROM presence WHERE student_id = ? AND session_id = ? AND week_number = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, studentId);
-            stmt.setInt(2, sessionId);
-            stmt.setInt(3, weekNumber);
-            stmt.executeUpdate();
-        }
-    }
-    
-    public void deleteAllAttendance(int weekNumber) throws SQLException {
-        String sql = "DELETE FROM presence WHERE week_number = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            return results;
+        }    public static Map<String, Map<String, Integer>> getLastWeekAttendanceRateByClass( int weekNumber)
+            throws SQLException {
+        Map<String, Map<String, Integer>> results = new HashMap<>();
+
+        String query = "SELECT DAYNAME(a.date) AS day_name, " +
+                "COUNT(CASE WHEN a.status = 1 THEN 1 END) AS present_count, " +
+                "COUNT(CASE WHEN a.status = 0 THEN 1 END) AS absent_count, " +
+                "COUNT(*) AS total_count " +
+                "FROM attendance a " +
+                "JOIN sessions s ON a.session_name = s.name " +
+                "JOIN students st ON a.student_name = st.name " +
+                "WHERE WEEK(a.date) = ? " +
+                "GROUP BY DAYNAME(a.date) " +
+                "ORDER BY FIELD(DAYNAME(a.date), 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')";        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, weekNumber);
-            stmt.executeUpdate();
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Integer> row = new HashMap<>();
+                    row.put("present_count", rs.getInt("present_count"));
+                    row.put("absent_count", rs.getInt("absent_count"));
+                    row.put("total_count", rs.getInt("total_count"));
+                    results.put(rs.getString("day_name"), row);
+                }
+            }
+        }
+
+        return results;
+    }
+
+    public static Map<String, Map<String, Integer>> getLastWeekAttendanceRateByClass()
+            throws SQLException {
+        Map<String, Map<String, Integer>> results = new HashMap<>();
+
+        String query = "SELECT DAYNAME(a.date) AS day_name, " +
+                "COUNT(CASE WHEN a.status = 1 THEN 1 END) AS present_count, " +
+                "COUNT(CASE WHEN a.status = 0 THEN 1 END) AS absent_count, " +
+                "COUNT(*) AS total_count " +
+                "FROM attendance a " +
+                "JOIN sessions s ON a.session_name = s.name " +
+                "JOIN students st ON a.student_name = st.name " +
+                "WHERE a.date BETWEEN DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) + 7 DAY) " +
+                "AND DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) + 1 DAY) " +
+                "GROUP BY DAYNAME(a.date) " +
+                "ORDER BY FIELD(DAYNAME(a.date), 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Integer> row = new HashMap<>();
+                    row.put("present_count", rs.getInt("present_count"));
+                    row.put("absent_count", rs.getInt("absent_count"));
+                    row.put("total_count", rs.getInt("total_count"));
+                    results.put(rs.getString("day_name"), row);
+                }
+            }
+        }
+
+        return results;
+    }
+
+
+    
+public static Map<String, Integer> getWeeklyAttendanceByStudent(String studentName) throws SQLException {
+    Map<String, Integer> results = new LinkedHashMap<>();
+
+    String query = "SELECT " +
+            "DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) + 7 - seq.day_index DAY), '%W') AS day_name, " +
+            "COALESCE( " +
+            "    MAX(CASE " +
+            "        WHEN a.status = 1 THEN 1 " +
+            "        WHEN a.status = 0 THEN 0 " +
+            "    END), " +
+            "    2 " +
+            ") AS attendance_status " +
+            "FROM " +
+            "    (SELECT 0 AS day_index UNION ALL SELECT 1 UNION ALL SELECT 2 " +
+            "     UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) AS seq " +
+            "LEFT JOIN attendance a " +
+            "    ON a.date = DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) + 7 - seq.day_index DAY) " +
+            "    AND a.student_name = ? " +
+            "GROUP BY seq.day_index " +
+            "ORDER BY seq.day_index";
+
+    try (PreparedStatement stmt = connection.prepareStatement(query)) {
+        stmt.setString(1, studentName);
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                results.put(rs.getString("day_name"), rs.getInt("attendance_status"));
+            }
         }
     }
-}
+
+    return results;
+}}

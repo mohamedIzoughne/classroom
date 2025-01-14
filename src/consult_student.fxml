@@ -39,19 +39,17 @@
               <columns>
                 <TableColumn fx:id="fullNameColumn" prefWidth="184.0" text="Nom Complet" />
                 <TableColumn fx:id="emailColumn" prefWidth="184.0" text="email" />
-                  <TableColumn fx:id="phoneColumn" prefWidth="184.0" text="Numéro de téléphone" />
-                  <TableColumn fx:id="genderColumn" prefWidth="184.0" text="genre" />
-                  <TableColumn fx:id="dobColumn" prefWidth="184.0" text="Date de naissance" />
+               <TableColumn fx:id="phoneColumn" prefWidth="184.0" text="Numéro de téléphone" />
+               <TableColumn fx:id="genderColumn" prefWidth="184.0" text="genre" />
+               <TableColumn fx:id="dobColumn" prefWidth="184.0" text="Date de naissance" />
               </columns>
             </TableView>
-            <MenuButton layoutX="850.0" layoutY="1.0" mnemonicParsing="false" text="Classe">
+            <MenuButton fx:id="classesMenu"  layoutX="850.0" layoutY="1.0" mnemonicParsing="false" text="Classe" >
               <items>
-                <MenuItem mnemonicParsing="false" text="Action 1" />
-                <MenuItem mnemonicParsing="false" text="Action 2" />
               </items>
             </MenuButton>
-            <TextField layoutY="-1.0" prefHeight="30.0" prefWidth="187.0" promptText="Search" />
-            <Button layoutX="143.0" layoutY="-1.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="43.0">
+            <TextField fx:id="searchField" layoutY="-1.0" prefHeight="30.0" prefWidth="187.0" promptText="Search" onAction="#searchStudentHandler" />
+            <Button onAction="#searchStudentHandler" layoutX="143.0" layoutY="-1.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="43.0">
                <graphic>
                   <ImageView fitHeight="21.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
                      <image>

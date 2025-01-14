@@ -1,0 +1,36 @@
+#app {
+    -fx-background-color: white;
+}
+
+
+.table-view {
+    -fx-background-color: transparent;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #F7F9FC;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-padding: 8px;
+}
+
+/* .table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #E0E0E0 transparent;
+    -fx-padding: 5px;
+} */
+
+/* .table-row-cell:selected {
+    -fx-background-color: #e8f0fe;
+} */
+
+button {
+    -fx-background-color: #F7F9FC;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-opacity: 0.8;
+}

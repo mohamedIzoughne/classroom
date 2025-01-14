@@ -1,17 +1,29 @@
 
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.TableCell;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
+import db.AttendanceDAO;
+import db.ClassesDAO;
+import db.StudentDAO;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
+import models.Classes;
 import models.Student;
 
 
@@ -59,10 +71,85 @@ public class ConsultStudent {
     @FXML
     private TableColumn<DaysSchedule, String> colSun;
 
+    @FXML
+        private TextField searchField;
+
+    @FXML
+    void searchStudentHandler() {
+        searchStudent();
+    }
 
 
+    @FXML
+    private MenuButton classesMenu;
+    
+    private String selectedClass = "";
+
+    void searchStudent() {
+        String searchText = searchField.getText().toLowerCase();
+        List<Student> filteredStudents = StudentDAO.getStudentByName(searchText, selectedClass);
+        
+        ObservableList<Student> students = FXCollections.observableArrayList(filteredStudents);
+
+        tableView.setItems(students);
+    }
+
+
+    DaysSchedule schedule = new DaysSchedule("—", "—", "—", "—", "—", "—", "—");
     public void initialize() {
         // Ajouter des données au PieChart
+        
+                // Add row selection listener to tableView
+                tableView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+                    if (newSelection != null) {
+                        Student selectedStudent = newSelection;
+                        String fullName = selectedStudent.getFullName();
+                        try {
+                            Map<String, Integer> scheduleData = AttendanceDAO.getWeeklyAttendanceByStudent(fullName);
+                            System.out.println("Weekly Attendance Data for " + fullName + ":");
+                            System.out.println(scheduleData);
+                            schedule = new DaysSchedule(
+                                scheduleData.get("Monday") == 1 ? "✔" : scheduleData.get("Monday") == 0 ? "✘" : "—",
+                                scheduleData.get("Tuesday") == 1 ? "✔" : scheduleData.get("Tuesday") == 0 ? "✘" : "—",
+                                scheduleData.get("Wednesday") == 1 ? "✔" : scheduleData.get("Wednesday") == 0 ? "✘" : "—",
+                                scheduleData.get("Thursday") == 1 ? "✔" : scheduleData.get("Thursday") == 0 ? "✘" : "—",
+                                scheduleData.get("Friday") == 1 ? "✔" : scheduleData.get("Friday") == 0 ? "✘" : "—",
+                                scheduleData.get("Saturday") == 1 ? "✔" : scheduleData.get("Saturday") == 0 ? "✘" : "—",
+                                "—"
+                            );
+                            ObservableList<DaysSchedule> data = FXCollections.observableArrayList(schedule);
+                            tableView1.setItems(data);
+                            // schedule.set(scheduleData.get("Monday"));
+                            for (Map.Entry<String, Integer> entry : scheduleData.entrySet()) {
+                                System.out.println(entry.getKey() + ": " + entry.getValue());
+                            }
+                        } catch(SQLException e) {
+                            e.printStackTrace();
+                        }
+                        // Add more fields as needed based on your Student class properties
+                    }
+                });
+        
+
+        try {
+            // Add class menu items
+            List<Classes> classes = ClassesDAO.getClasses();
+            for (Classes classe : classes) {
+                javafx.scene.control.MenuItem menuItem = new javafx.scene.control.MenuItem(classe.getClasse());
+                menuItem.setOnAction(event -> {
+                    classesMenu.setText(classe.getClasse());
+                    selectedClass = classe.getClasse();
+                    searchStudent();
+                });
+
+                classesMenu.getItems().add(menuItem);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        
+        
         // Ajouter des données au PieChart
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
             new PieChart.Data("Presence", 60),
@@ -100,24 +187,16 @@ public class ConsultStudent {
         // Configurer les colonnes pour utiliser les propriétés de la classe Student
         fullNameColumn.setCellValueFactory(new PropertyValueFactory<>("fullName"));
         emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
-        phoneColumn.setCellValueFactory(new PropertyValueFactory<>("phone"));
         genderColumn.setCellValueFactory(new PropertyValueFactory<>("gender"));
+        phoneColumn.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
         dobColumn.setCellValueFactory(new PropertyValueFactory<>("dateOfBirth"));
 
         // Ajouter des données dans le tableau
-        ObservableList<Student> students = FXCollections.observableArrayList(
-            new Student("Mohamed Izourne", "izourne@gmail.com", "+212 683925793", "Male", "22 mai 2001"),
-            new Student("Mohamed Izourne", "izourne@gmail.com", "+212 683925793", "Male", "22 mai 2001"),
-            new Student("Mohamed Izourne", "izourne@gmail.com", "+212 683925793", "Male", "22 mai 2001")
-        );
-        tableView.setItems(students);
         fullNameColumn.setStyle("-fx-alignment: CENTER;");
         emailColumn.setStyle("-fx-alignment: CENTER;");
         phoneColumn.setStyle("-fx-alignment: CENTER;");
         genderColumn.setStyle("-fx-alignment: CENTER;");
         dobColumn.setStyle("-fx-alignment: CENTER;");
-
-
 
 
         colMon.setCellValueFactory(cellData -> cellData.getValue().mondayProperty());
@@ -136,10 +215,7 @@ public class ConsultStudent {
         configureColumn(colSat);
         configureColumn(colSun);
 
-        ObservableList<DaysSchedule> data = FXCollections.observableArrayList(
-            new DaysSchedule("✔", "✘", "—", "✔", "✘", "—", "✔")
-            
-        );
+        ObservableList<DaysSchedule> data = FXCollections.observableArrayList(schedule);
         tableView1.setItems(data);
    
 }

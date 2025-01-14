@@ -1,8 +1,14 @@
 import java.io.IOException;
+import java.sql.SQLException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
+import db.AttendanceDAO;
 import db.ClassesDAO;
 import db.StudentDAO;
 import javafx.collections.FXCollections;
@@ -25,7 +31,9 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.Node;
+import db.AttendanceDAO;
 
 public class DashboardController {
 
@@ -47,6 +55,8 @@ public class DashboardController {
     @FXML
     private MenuButton classMenu;
 
+    @FXML
+    private MenuButton weekMenuButton;
     // @Xml
     // private AnchorPane contentPane;
     int[] studentFemaleAndMalePercentage = { 0, 0 };
@@ -91,11 +101,42 @@ public class DashboardController {
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setCategories(
                 FXCollections.<String>observableArrayList(Arrays.asList("Mon", "Tue", "Wed", "Thu", "Fri")));
+    }
+
+    void setBarChart(XYChart.Series<String, Number> presentData, XYChart.Series<String, Number> absentData,
+            Map<String, Map<String, Integer>> attendanceData) {
+
+        presentData.setName("Présent");
+        presentData.getData().add(new XYChart.Data<>("Mon",
+                attendanceData.get("Monday") != null ? attendanceData.get("Monday").get("present_count") : 0)); // Exemple//
+                                                                                                                // données
+        presentData.getData().add(new XYChart.Data<>("Tue",
+                attendanceData.get("Tuesday") != null ? attendanceData.get("Tuesday").get("present_count") : 0));
+        presentData.getData().add(new XYChart.Data<>("Wed",
+                attendanceData.get("Wednesday") != null ? attendanceData.get("Wednesday").get("present_count") : 0));
+        presentData.getData().add(new XYChart.Data<>("Thu",
+                attendanceData.get("Thursday") != null ? attendanceData.get("Thursday").get("present_count") : 0));
+        presentData.getData().add(new XYChart.Data<>("Fri",
+                attendanceData.get("Friday") != null ? attendanceData.get("Friday").get("present_count") : 0));
+
+        absentData.setName("Absent");
+        absentData.getData().add(new XYChart.Data<>("Mon",
+                attendanceData.get("Monday") != null ? attendanceData.get("Monday").get("absent_count") : 0));
+        absentData.getData().add(new XYChart.Data<>("Tue",
+                attendanceData.get("Tuesday") != null ? attendanceData.get("Tuesday").get("absent_count") : 0));
+        absentData.getData().add(new XYChart.Data<>("Wed",
+                attendanceData.get("Wednesday") != null ? attendanceData.get("Wednesday").get("absent_count") : 0));
+        absentData.getData().add(new XYChart.Data<>("Thu",
+                attendanceData.get("Thursday") != null ? attendanceData.get("Thursday").get("absent_count") : 0));
+        absentData.getData().add(new XYChart.Data<>("Fri",
+                attendanceData.get("Friday") != null ? attendanceData.get("Friday").get("absent_count") : 0));
 
     }
 
     public void initialize() {
         // initialize data
+        XYChart.Series<String, Number> presentData = new XYChart.Series<>();
+        XYChart.Series<String, Number> absentData = new XYChart.Series<>();
         try {
             studentFemaleAndMalePercentage = StudentDAO.getStudentCountsByGender();
             String studentsNum = studentFemaleAndMalePercentage[0] + studentFemaleAndMalePercentage[1] + "";
@@ -107,6 +148,13 @@ public class DashboardController {
                 javafx.scene.control.MenuItem menuItem = new javafx.scene.control.MenuItem(classe.getClasse());
                 menuItem.setOnAction(event -> {
                     classMenu.setText(classe.getClasse());
+                    try {
+                        Map<String, Map<String, Integer>> attendanceData = AttendanceDAO
+                                .getLastWeekAttendanceRateByClass(classe.getClasse());
+                        setBarChart(presentData, absentData, attendanceData);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                     studentFemaleAndMalePercentage = StudentDAO.getStudentCountsByGender(classe.getClasse());
                     refreshPieChart();
                 });
@@ -143,6 +191,29 @@ public class DashboardController {
             }
         }
 
+        // Add week menu items
+        LocalDate now = LocalDate.now();
+        WeekFields weekFields = WeekFields.of(DayOfWeek.MONDAY, 1);
+        int totalWeeks = now.get(weekFields.weekOfWeekBasedYear());
+
+        List<String> weeks = new ArrayList<>();
+        for (int i = totalWeeks; i >= 1; i--) {
+            weeks.add(String.valueOf(i));
+        }
+        for (String week : weeks) {
+            MenuItem menuItem = new MenuItem("Week " + week);
+            menuItem.setOnAction(event -> {
+                weekMenuButton.setText("Week " + week);
+                try {
+                    Map<String, Map<String, Integer>> attendanceData = AttendanceDAO
+                            .getLastWeekAttendanceRateByClass(classMenu.getText(), Integer.parseInt(week));
+                    setBarChart(presentData, absentData, attendanceData);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            });
+            weekMenuButton.getItems().add(menuItem);
+        }
         // Désactiver la légende automatique
         pieChart.setLegendVisible(false);
 
@@ -158,27 +229,20 @@ public class DashboardController {
                 FXCollections.<String>observableArrayList(Arrays.asList("Mon", "Tue", "Wed", "Thu", "Fri")));
         NumberAxis yAxis = new NumberAxis();
 
-
         // Créer le graphique
         BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
         barChart.setTitle("Présence et Absence Hebdomadaire");
+        Map<String, Map<String, Integer>> attendanceData = null;
+        try {
+            attendanceData = AttendanceDAO.getLastWeekAttendanceRateByClass();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         // Ajouter les séries de données
-        XYChart.Series<String, Number> presentData = new XYChart.Series<>();
-        presentData.setName("Présent");
-        presentData.getData().add(new XYChart.Data<>("Mon", 43)); // Exemple de données
-        presentData.getData().add(new XYChart.Data<>("Tue", 37));
-        presentData.getData().add(new XYChart.Data<>("Wed", 13));
-        presentData.getData().add(new XYChart.Data<>("Thu", 88));
-        presentData.getData().add(new XYChart.Data<>("Fri", 29));
 
-        XYChart.Series<String, Number> absentData = new XYChart.Series<>();
-        absentData.setName("Absent");
-        absentData.getData().add(new XYChart.Data<>("Mon", 55)); // Exemple de données
-        absentData.getData().add(new XYChart.Data<>("Tue", 71));
-        absentData.getData().add(new XYChart.Data<>("Wed", 14));
-        absentData.getData().add(new XYChart.Data<>("Thu", 73));
-        absentData.getData().add(new XYChart.Data<>("Fri", 72));
+        setBarChart(presentData, absentData, attendanceData);
+
         barChart.layoutBoundsProperty().addListener((observable, oldValue, newValue) -> {
             for (XYChart.Data<String, Number> data : presentData.getData()) {
                 if (data.getNode() != null) {

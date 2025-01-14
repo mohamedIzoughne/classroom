@@ -166,4 +166,28 @@ public class StudentDAO {
         }
         return count;
     }
+
+    public static ArrayList<Student> getStudentByName(String name, String className) {
+        ArrayList<Student> students = new ArrayList<>();
+        if (connection != null) {
+            String query = "SELECT * FROM students WHERE name LIKE ? AND class_name = ?";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, "%" + name + "%");
+                statement.setString(2, className);
+                ResultSet resultSet = statement.executeQuery();
+                while (resultSet.next()) {
+                    Student student = new Student();
+                    student.setFullName(resultSet.getString("name"));
+                    student.setGender(resultSet.getString("gender"));
+                    student.setDateOfBirth(resultSet.getString("date_of_birth"));
+                    student.setEmail(resultSet.getString("email"));
+                    student.setPhoneNumber(resultSet.getString("phoneNumber"));
+                    students.add(student);
+                }
+            } catch (SQLException e) {
+                System.out.println("Error getting student details: " + e.getMessage());
+            }
+        }
+        return students;
+    }
 }
