@@ -60,7 +60,7 @@
                   <Font name="System Bold" size="18.0" />
                </font>
             </Label>
-            <Label layoutY="32.0" prefHeight="10.0" prefWidth="73.0" text="GI, Groupe 3" textFill="#64748b" />
+            <Label fx:id="studentClass" layoutY="32.0" prefHeight="10.0" prefWidth="73.0" text="----" textFill="#64748b" />
             <Label layoutY="58.0" prefHeight="17.0" prefWidth="107.0" text="Dernière absence :">
                <font>
                   <Font name="System Bold" size="11.94" />
@@ -82,7 +82,7 @@
                   <TableColumn fx:id="colSun" prefWidth="75.0" text="Sun" />
               </columns>
             </TableView>
-            <Label layoutX="106.0" layoutY="59.0" text="Tue 2, January 2024" textFill="#5c5c5c">
+            <Label fx:id="lastAbsence" layoutX="106.0" layoutY="59.0" text="-----------" textFill="#5c5c5c">
                <font>
                   <Font size="10.0" />
                </font>

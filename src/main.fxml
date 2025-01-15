@@ -32,5 +32,5 @@
    <center>
         <AnchorPane fx:id="dynamicContent" />
    </center>
-   
+
 </BorderPane>

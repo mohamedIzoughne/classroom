@@ -1,4 +1,5 @@
 
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TableCell;
 
@@ -72,6 +73,9 @@ public class ConsultStudent {
     private TableColumn<DaysSchedule, String> colSun;
 
     @FXML
+    private Label lastAbsence;
+
+    @FXML
         private TextField searchField;
 
     @FXML
@@ -82,6 +86,9 @@ public class ConsultStudent {
 
     @FXML
     private MenuButton classesMenu;
+
+    @FXML
+    private Label studentClass;
     
     private String selectedClass = "";
 
@@ -100,10 +107,12 @@ public class ConsultStudent {
     public void initialize() {
         // Ajouter des données au PieChart
         
+        
                 // Add row selection listener to tableView
                 tableView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
                     if (newSelection != null) {
                         Student selectedStudent = newSelection;
+
                         String fullName = selectedStudent.getFullName();
                         selected = selectedStudent;
                         try {
@@ -114,6 +123,9 @@ public class ConsultStudent {
                                 new PieChart.Data("Abscence justifiée",stats[1]),
                                 new PieChart.Data("Abscence non justifiée", stats[2])
                             );
+
+                            String absenceDate = AttendanceDAO.getLastAbsenceDate(selectedStudent);
+                            lastAbsence.setText(absenceDate);
                             pieChart1.setData(pieChartData);
                     
                             // Calculer les pourcentages et mettre à jour les noms
@@ -171,6 +183,7 @@ public class ConsultStudent {
                     classesMenu.setText(classe.getClasse());
                     selectedClass = classe.getClasse();
                     searchStudent();
+                    studentClass.setText(selectedClass);
                 });
 
                 classesMenu.getItems().add(menuItem);

@@ -75,7 +75,7 @@ public class SessionDAO {
 
     public static List<Session> getAllByDay(String className, String dayName) throws SQLException {
         List<Session> sessions = new ArrayList<>();
-        String sql = "SELECT * FROM sessions where day_name = ? and subject_name in (select subject_name from subjects where class_name = ?)";
+        String sql = "SELECT * FROM sessions where day_name = ? and subject_name in (select name from subjects where class_name = ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, dayName);
             stmt.setString(2, className);
@@ -101,7 +101,7 @@ public class SessionDAO {
 
     public static List<Session> getAll(String className) throws SQLException {
         List<Session> sessions = new ArrayList<>();
-        String sql = "SELECT * FROM sessions where subject_name in (select subject_name from subjects where class_name = ?)";
+        String sql = "SELECT * FROM sessions where subject_name in (select name from subjects where class_name = ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, className);
             ResultSet rs = stmt.executeQuery();

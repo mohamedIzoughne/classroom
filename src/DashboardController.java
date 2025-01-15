@@ -74,48 +74,59 @@ public class DashboardController {
     // private AnchorPane contentPane;
     int[] studentFemaleAndMalePercentage = { 0, 0 };
 
-    void refreshPieChart() {
-        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
-                new PieChart.Data("Garcons", studentFemaleAndMalePercentage[0]),
-                new PieChart.Data("Filles", studentFemaleAndMalePercentage[1]));
-        pieChart.setData(pieChartData);
+        void refreshPieChart() {
+            ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
+                    new PieChart.Data("Garcons", studentFemaleAndMalePercentage[0]),
+                    new PieChart.Data("Filles", studentFemaleAndMalePercentage[1]));
+            pieChart.setData(pieChartData);
 
-        // Calculer les pourcentages et mettre à jour les noms
-        double total = pieChartData.stream().mapToDouble(PieChart.Data::getPieValue).sum();
-        pieChartData.forEach(data -> {
-            double percentage = (data.getPieValue() / total) * 100;
-            data.setName(data.getName() + " (" + String.format("%.1f%%", percentage) + ")");
-        });
-
-        Text totalText = new Text("Total des étudiants : " + total);
-        totalText.setStyle("-fx-font-size: 14; -fx-font-style: italic;");
-
-        // Personnaliser les couleurs des segments
-        for (PieChart.Data data : pieChartData) {
-            if (data.getName().startsWith("Garcons")) {
-                data.getNode().setStyle("-fx-pie-color: #4C8CF8;");
-            } else if (data.getName().startsWith("Filles")) {
-                data.getNode().setStyle("-fx-pie-color: #1FE6D1;");
+            // Calculer les pourcentages et mettre à jour les noms
+            double total = pieChartData.stream().mapToDouble(PieChart.Data::getPieValue).sum();
+            if (total == 0) {
+                pieChartData = FXCollections.observableArrayList(
+                    new PieChart.Data("Aucun étudiant", 1));
+                pieChart.setData(pieChartData);
+            } else {
+                pieChartData.forEach(data -> {
+                    double percentage = (data.getPieValue() / total) * 100;
+                    data.setName(data.getName() + " (" + String.format("%.1f%%", percentage) + ")");
+                });
             }
+
+            Text totalText = new Text("Total des étudiants : " + total);
+            totalText.setStyle("-fx-font-size: 14; -fx-font-style: italic;");
+
+            // Personnaliser les couleurs des segments
+            for (PieChart.Data data : pieChartData) {
+                if (data.getName().startsWith("Garcons")) {
+                    data.getNode().setStyle("-fx-pie-color: #4C8CF8;");
+                } else if (data.getName().startsWith("Filles")) {
+                    data.getNode().setStyle("-fx-pie-color: #1FE6D1;");
+                } else if (data.getName().startsWith("Aucun")) {
+                    data.getNode().setStyle("-fx-pie-color: #CCCCCC;");
+                }
+            }
+            pieChart.setLegendVisible(false);
+
+            // Créer une légende personnalisée
+            legendBox.getChildren().clear();
+            if (total == 0) {
+                createLegendItem("Aucun étudiant", Color.web("#CCCCCC"));
+            } else {
+                String garconsLabel = String.format("Garcons (%d)", studentFemaleAndMalePercentage[0]);
+                String fillesLabel = String.format("Filles (%d)", studentFemaleAndMalePercentage[1]);
+                createLegendItem(garconsLabel, Color.web("#4C8CF8"));
+                createLegendItem(fillesLabel, Color.web("#1FE6D1"));
+            }
+
+            // Add some vertical spacing
+            legendBox.setTranslateY(40);
+
+            // Définir les axes du BarChart
+            CategoryAxis xAxis = new CategoryAxis();
+            xAxis.setCategories(
+                    FXCollections.<String>observableArrayList(Arrays.asList("Mon", "Tue", "Wed", "Thu", "Fri")));
         }
-        pieChart.setLegendVisible(false);
-
-        // Créer une légende personnalisée
-        legendBox.getChildren().clear();
-        String garconsLabel = String.format("Garcons (%d)", studentFemaleAndMalePercentage[0]);
-        String fillesLabel = String.format("Filles (%d)", studentFemaleAndMalePercentage[1]);
-        createLegendItem(garconsLabel, Color.web("#4C8CF8"));
-        createLegendItem(fillesLabel, Color.web("#1FE6D1"));
-
-        // Add some vertical spacing
-        legendBox.setTranslateY(40);
-
-        // Définir les axes du BarChart
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setCategories(
-                FXCollections.<String>observableArrayList(Arrays.asList("Mon", "Tue", "Wed", "Thu", "Fri")));
-    }
-
     void setBarChart(XYChart.Series<String, Number> presentData, XYChart.Series<String, Number> absentData,
             Map<String, Map<String, Integer>> attendanceData) {
 
@@ -169,9 +180,15 @@ public class DashboardController {
                 menuItem.setOnAction(event -> {
                     classMenu.setText(classe.getClasse());
                     try {
-                        Map<String, Map<String, Integer>> attendanceData = AttendanceDAO
-                                .getLastWeekAttendanceRateByClass(classe.getClasse());
-                        setBarChart(presentData, absentData, attendanceData);
+                        Map<String, Map<String, Integer>> attendanceData;
+                        if (weekMenuButton.getText() != null && !weekMenuButton.getText().isEmpty() && !weekMenuButton.getText().equals("cette semaine")) {
+                            attendanceData = AttendanceDAO
+                                    .getLastWeekAttendanceRateByClass(classe.getClasse(), Integer.parseInt(weekMenuButton.getText().split(" ")[1]));
+                                } else {
+                            attendanceData = AttendanceDAO
+                                    .getLastWeekAttendanceRateByClass(classe.getClasse());
+                        }
+                        setBarChart(presentData, absentData, attendanceData);                    
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }

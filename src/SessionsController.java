@@ -72,6 +72,7 @@ public class SessionsController implements Initializable {
                 } else {
                     sessionsList = SessionDAO.getAll(classFilter.getValue());
                 }
+                System.out.println("sessionsList: " + sessionsList);
 
                 ObservableList<Session> observableList = FXCollections.observableArrayList(sessionsList);
                 tableView.setItems(observableList);

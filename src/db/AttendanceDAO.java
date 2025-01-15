@@ -18,9 +18,10 @@ public class AttendanceDAO {
 
     public static void saveAttendance(ObservableList<Attendance> attendanceList, String sessionName)
             throws SQLException {
-        StringBuilder query = new StringBuilder("INSERT INTO attendance (student_name, session_name, date, status) VALUES ");
+        StringBuilder query = new StringBuilder(
+                "INSERT INTO attendance (student_name, session_name, date, status) VALUES ");
         List<String> values = new ArrayList<>();
-        
+
         for (int i = 0; i < attendanceList.size(); i++) {
             values.add("(?, ?, ?, ?)");
         }
@@ -37,7 +38,9 @@ public class AttendanceDAO {
             System.out.println("Executing query: " + stmt.toString());
             stmt.executeUpdate();
         }
-    }    public static Map<String, Map<String, Integer>> getLastWeekAttendanceRateByClass(String className)
+    }
+
+    public static Map<String, Map<String, Integer>> getLastWeekAttendanceRateByClass(String className)
             throws SQLException {
         Map<String, Map<String, Integer>> results = new HashMap<>();
 
@@ -48,13 +51,11 @@ public class AttendanceDAO {
                 "FROM attendance a " +
                 "JOIN sessions s ON a.session_name = s.name " +
                 "JOIN students st ON a.student_name = st.name " +
-                "WHERE a.date BETWEEN DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) + 7 DAY) " +
-                "AND DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) + 1 DAY) " +
+                "WHERE a.date BETWEEN DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) " +
+                "AND DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) - 6 DAY) " +
                 "AND st.class_name = ? " +
                 "GROUP BY DAYNAME(a.date) " +
-                "ORDER BY FIELD(DAYNAME(a.date), 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')";
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+                "ORDER BY FIELD(DAYNAME(a.date), 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')";        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, className);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -203,7 +204,7 @@ public class AttendanceDAO {
         if (sessionName == null || sessionName.trim().isEmpty()) {
             return getAttendanceRatesForStudents(students);
         }
-        
+
         List<Attendance> attendances = new ArrayList<>();
 
         // Build the student names list for IN clause
@@ -237,7 +238,9 @@ public class AttendanceDAO {
                     int presentCount = rs.getInt("present_count");
                     int totalSessions = rs.getInt("total_sessions");
 
-                    double attendanceRate = totalSessions > 0 ? Math.round((double) presentCount / totalSessions * 10000.0) / 100.0 : 100.0;
+                    double attendanceRate = totalSessions > 0
+                            ? Math.round((double) presentCount / totalSessions * 10000.0) / 100.0
+                            : 100.0;
 
                     Attendance attendance = new Attendance(studentName, attendanceRate, false);
                     attendances.add(attendance);
@@ -248,43 +251,46 @@ public class AttendanceDAO {
         return attendances;
 
     }
+
     public static List<Attendance> getAttendanceRatesForStudents(List<Student> students)
             throws SQLException {
         List<Attendance> attendances = new ArrayList<>();
 
         // Build the student names list for IN clause
-            StringBuilder placeholders = new StringBuilder();
-            if (students.size() > 0) {
-                for (int i = 0; i < students.size(); i++) {
-                    placeholders.append(i > 0 ? ",?" : "?");
-                }
-            } else {
-                placeholders.append("''");
+        StringBuilder placeholders = new StringBuilder();
+        if (students.size() > 0) {
+            for (int i = 0; i < students.size(); i++) {
+                placeholders.append(i > 0 ? ",?" : "?");
             }
-            String query = "SELECT " +
-                    "students.name AS student_name, " +
-                    "COUNT(CASE WHEN a.status = 1 THEN 1 END) AS present_count, " +
-                    "COUNT(a.session_name) AS total_sessions " +
-                    "FROM students " +
-                    "LEFT JOIN attendance a ON students.name = a.student_name " +
-                    "WHERE students.name IN (" + placeholders.toString() + ") " +
-                    "GROUP BY students.name";
+        } else {
+            placeholders.append("''");
+        }
+        String query = "SELECT " +
+                "students.name AS student_name, " +
+                "COUNT(CASE WHEN a.status = 1 THEN 1 END) AS present_count, " +
+                "COUNT(a.session_name) AS total_sessions " +
+                "FROM students " +
+                "LEFT JOIN attendance a ON students.name = a.student_name " +
+                "WHERE students.name IN (" + placeholders.toString() + ") " +
+                "GROUP BY students.name";
 
-            try (PreparedStatement stmt = connection.prepareStatement(query)) {
-                // Set the session name
-                int paramIndex = 0;
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            // Set the session name
+            int paramIndex = 0;
 
-                // Set all student names in the prepared statement
-                for (Student student : students) {
-                    stmt.setString(++paramIndex, student.getFullName());
-                }
+            // Set all student names in the prepared statement
+            for (Student student : students) {
+                stmt.setString(++paramIndex, student.getFullName());
+            }
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     String studentName = rs.getString("student_name");
                     int presentCount = rs.getInt("present_count");
                     int totalSessions = rs.getInt("total_sessions");
 
-                    double attendanceRate = totalSessions > 0 ? Math.round((double) presentCount / totalSessions * 10000.0) / 100.0 : 100.0;
+                    double attendanceRate = totalSessions > 0
+                            ? Math.round((double) presentCount / totalSessions * 10000.0) / 100.0
+                            : 100.0;
 
                     Attendance attendance = new Attendance(studentName, attendanceRate, false);
                     attendances.add(attendance);
@@ -296,10 +302,9 @@ public class AttendanceDAO {
 
     }
 
-    
     public static int[] getAttendanceStatistics(Student student, String subject) throws SQLException {
         int[] counts = new int[3];
-    
+
         String query = "SELECT " +
                 "COUNT(CASE WHEN a.status = 1 THEN 1 END) AS present_count, " +
                 "COUNT(CASE WHEN a.status = 2 THEN 1 END) AS excused_absence_count, " +
@@ -309,11 +314,11 @@ public class AttendanceDAO {
                 "LEFT JOIN sessions sess ON a.session_name = sess.name " +
                 "WHERE s.name = ? AND sess.subject = ? " +
                 "GROUP BY s.name";
-    
+
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, student.getFullName());
             stmt.setString(2, subject);
-    
+
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     counts[0] = rs.getInt("present_count");
@@ -322,36 +327,58 @@ public class AttendanceDAO {
                 }
             }
         }
-    
+
         return counts;
-    }   
-    
+    }
+
     public static int[] getAttendanceStatistics(Student student) throws SQLException {
-            int[] counts = new int[3];
-        
-            String query = "SELECT " +
-                    "COUNT(CASE WHEN a.status = 1 THEN 1 END) AS present_count, " +
-                    "COUNT(CASE WHEN a.status = 2 THEN 1 END) AS excused_absence_count, " +
-                    "COUNT(CASE WHEN a.status = 0 THEN 1 END) AS unexcused_absence_count " +
-                    "FROM students s " +
-                    "LEFT JOIN attendance a ON s.name = a.student_name " +
-                    "LEFT JOIN sessions sess ON a.session_name = sess.name " +
-                    "WHERE s.name = ? " +
-                    "GROUP BY s.name";
-        
+        int[] counts = new int[3];
+
+        String query = "SELECT " +
+                "COUNT(CASE WHEN a.status = 1 THEN 1 END) AS present_count, " +
+                "COUNT(CASE WHEN a.status = 2 THEN 1 END) AS excused_absence_count, " +
+                "COUNT(CASE WHEN a.status = 0 THEN 1 END) AS unexcused_absence_count " +
+                "FROM students s " +
+                "LEFT JOIN attendance a ON s.name = a.student_name " +
+                "LEFT JOIN sessions sess ON a.session_name = sess.name " +
+                "WHERE s.name = ? " +
+                "GROUP BY s.name";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, student.getFullName());
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    counts[0] = rs.getInt("present_count");
+                    counts[1] = rs.getInt("excused_absence_count");
+                    counts[2] = rs.getInt("unexcused_absence_count");
+                }
+            }
+        }
+
+        return counts;
+    }
+
+    public static String getLastAbsenceDate(Student student) throws SQLException {
+            String query = "SELECT date " +
+                    "FROM attendance " +
+                    "WHERE student_name = ? AND (status = 0 OR status = 2) " +
+                    "ORDER BY date DESC " +
+                    "LIMIT 1";
+    
             try (PreparedStatement stmt = connection.prepareStatement(query)) {
                 stmt.setString(1, student.getFullName());
-        
+    
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        counts[0] = rs.getInt("present_count");
-                        counts[1] = rs.getInt("excused_absence_count");
-                        counts[2] = rs.getInt("unexcused_absence_count");
+                        java.sql.Date date = rs.getDate("date");
+                        if (date != null) {
+                            return new java.text.SimpleDateFormat("EEE d, MMMM yyyy").format(date);
+                        }
                     }
                 }
             }
-        
-            return counts;
+            return "No absences recorded";
         }
     
 }
