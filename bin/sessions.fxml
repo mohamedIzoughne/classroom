@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+
+<AnchorPane prefHeight="576.0" prefWidth="991.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="SessionsController">
+   <children>
+      <HBox layoutX="23.0" layoutY="101.0" prefHeight="36.0" prefWidth="262.0" />
+      <TableView fx:id="tableView" layoutX="14.0" layoutY="181.0" prefHeight="230.0" prefWidth="929.0">
+        <columns>
+          <TableColumn fx:id="nameColumn" prefWidth="133.99998950958252" text=" name" />
+          <TableColumn fx:id="subjectColumn" minWidth="0.0" prefWidth="111.33329772949219" text="Subject" />
+          <TableColumn fx:id="salleColumn" prefWidth="137.33340454101562" text="La salle" />
+          <TableColumn fx:id="dayColumn" minWidth="0.0" prefWidth="150.00003051757812" text="Day" />
+          <TableColumn fx:id="hoursColumn" prefWidth="126.0" text="Hours" />
+          <TableColumn fx:id="statusColumn" prefWidth="134.66668701171875" text="Status" />
+          <TableColumn fx:id="actionsColumn" prefWidth="132.0" text="Actions" />
+        </columns>
+      </TableView>
+      <!-- <TextField layoutX="14.0" layoutY="129.0" prefHeight="39.0" prefWidth="256.0" promptText="  Search..." /> -->
+        <ComboBox layoutX="783.0" layoutY="136.0" prefHeight="22.0" prefWidth="69.0" promptText="Day" fx:id="dayFilter">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Monday" />
+                    <String fx:value="Tuesday" />
+                    <String fx:value="Wednesday" />
+                    <String fx:value="Thursday" />
+                    <String fx:value="Friday" />
+                    <String fx:value="Saturday" />
+                    <String fx:value="Sunday" />
+                </FXCollections>
+            </items>
+        </ComboBox>
+        <ComboBox layoutX="867.0" layoutY="136.0" prefHeight="25.0" prefWidth="74.0" promptText="Class" fx:id="classFilter" />      <Button layoutX="889.0" layoutY="508.0" mnemonicParsing="false" onAction="#handleAddButton" prefHeight="25.0" prefWidth="29.0" style="-fx-background-color: #0981D1;" text="+" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Button>
+   </children>
+</AnchorPane>

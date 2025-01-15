@@ -10,7 +10,10 @@ import java.util.Map;
 
 import db.AttendanceDAO;
 import db.ClassesDAO;
+import db.ReclamationDAO;
+import db.SessionDAO;
 import db.StudentDAO;
+import db.SubjectDAO;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -57,6 +60,16 @@ public class DashboardController {
 
     @FXML
     private MenuButton weekMenuButton;
+
+    @FXML
+    private Label subjectsNumLabel;
+
+    @FXML
+    private Label sessionsNumLabel;
+
+    @FXML
+    private Label reclamationsNumLabel;
+
     // @Xml
     // private AnchorPane contentPane;
     int[] studentFemaleAndMalePercentage = { 0, 0 };
@@ -141,6 +154,13 @@ public class DashboardController {
             studentFemaleAndMalePercentage = StudentDAO.getStudentCountsByGender();
             String studentsNum = studentFemaleAndMalePercentage[0] + studentFemaleAndMalePercentage[1] + "";
             studentNb.setText(studentsNum);
+            int subjectsNum = SubjectDAO.getSubjectCount();
+            subjectsNumLabel.setText(subjectsNum + "");
+            int sessionsNum = SessionDAO.getSessionsCount();
+            sessionsNumLabel.setText(sessionsNum + "");
+            int reclamationsNum = ReclamationDAO.getReclamationsCount();
+            reclamationsNumLabel.setText(reclamationsNum + "");
+
 
             // Add class menu items
             List<Classes> classes = ClassesDAO.getClasses();

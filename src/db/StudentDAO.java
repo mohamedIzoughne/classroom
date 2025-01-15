@@ -106,6 +106,32 @@ public class StudentDAO {
         return students;
     }
 
+    public static List<Student> getStudentsByClassName(String className, String studentName) throws SQLException {
+        List<Student> students = new ArrayList<>();
+        if (connection != null) {
+            String query = "SELECT * from students where class_name = ? and (? = '' OR name LIKE ?)";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, className);
+                statement.setString(2, studentName);
+                statement.setString(3, "%" + studentName + "%");
+                ResultSet resultSet = statement.executeQuery();
+                while (resultSet.next()) {
+                    Student student = new Student();
+                    student.setFullName(resultSet.getString("name"));
+                    student.setEmail(resultSet.getString("email"));
+                    student.setPhoneNumber(resultSet.getString("phoneNumber"));
+                    student.setGender(resultSet.getString("gender"));
+                    student.setDateOfBirth(resultSet.getString("date_of_birth"));
+                    // student.set(resultSet.getInt("class_name"));
+                    students.add(student);
+                }
+            } catch (SQLException e) {
+                System.out.println("Error getting students by class name: " + e.getMessage());
+            }
+        }
+        return students;
+    }
+
     public static int[] getStudentCountsByGender() {
         int[] counts = new int[] { 0, 0 };
         if (connection != null) {
@@ -190,4 +216,5 @@ public class StudentDAO {
         }
         return students;
     }
+    
 }

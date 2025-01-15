@@ -1,5 +1,6 @@
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
@@ -18,6 +19,9 @@ import db.StudentDAO;
 import models.Classes;
 import models.Reclamation;
 import models.Session;
+
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class ReclamationsController implements Initializable {
 
@@ -65,7 +69,7 @@ public class ReclamationsController implements Initializable {
     }
 
     void handleSessions() throws SQLException {
-        List<Session> sessions = SessionDAO.getAll(classFilter.getValue(), searchField.getText());
+        List<Session> sessions = SessionDAO.getAll(classFilter.getValue());
         sessionFilter.getItems().clear();
         for (Session session : sessions) {
             sessionFilter.getItems().add(session.getName());
@@ -86,29 +90,41 @@ public class ReclamationsController implements Initializable {
 
         // Configure actions column
         actionsColumn.setCellFactory(param -> new TableCell<>() {
-            private final Button approveBtn = new Button("✓");
-            private final Button editBtn = new Button("✎");
-            private final Button deleteBtn = new Button("×");
+            private final ImageView vectorIcon = new ImageView(
+                    new Image(getClass().getResourceAsStream("/images/approveIcon.png")));
+            private final ImageView removeIcon = new ImageView(
+                    new Image(getClass().getResourceAsStream("/images/Vector.png")));
+            private final Button approveBtn = new Button("", vectorIcon);
+            private final Button removeBtn = new Button("", removeIcon);
             private final HBox buttons = new HBox(5);
 
             {
-                // Style buttons
-                approveBtn.setStyle("-fx-text-fill: green; -fx-font-size: 14px;");
-                editBtn.setStyle("-fx-text-fill: blue; -fx-font-size: 14px;");
-                deleteBtn.setStyle("-fx-text-fill: red; -fx-font-size: 14px;");
+                // Style buttons and resize icons
+                vectorIcon.setFitHeight(18);
+                vectorIcon.setFitWidth(18);
+                removeIcon.setFitHeight(18);
+                removeIcon.setFitWidth(18);
 
-                buttons.getChildren().addAll(approveBtn, editBtn, deleteBtn);
+                approveBtn.setStyle("-fx-background-color: transparent;");
+                removeBtn.setStyle("-fx-background-color: transparent;");
+
+                buttons.getChildren().addAll(removeBtn, approveBtn);
+                buttons.setAlignment(Pos.CENTER);
 
                 // Add button handlers
                 approveBtn.setOnAction(event -> handleApprove(getTableRow().getItem()));
-                editBtn.setOnAction(event -> handleEdit(getTableRow().getItem()));
-                deleteBtn.setOnAction(event -> handleDelete(getTableRow().getItem()));
+                removeBtn.setOnAction(event -> handleDelete(getTableRow().getItem()));
             }
 
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                setGraphic(empty ? null : buttons);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(buttons);
+                    setAlignment(Pos.CENTER);
+                }
             }
         });
 
@@ -145,47 +161,59 @@ public class ReclamationsController implements Initializable {
     }
 
     // private void setupSearch() {
-    //     filteredData = new FilteredList<>(reclamationsList, p -> true);
+    // filteredData = new FilteredList<>(reclamationsList, p -> true);
 
-    //     searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-    //         filteredData.setPredicate(reclamation -> {
-    //             if (newValue == null || newValue.isEmpty()) {
-    //                 return true;
-    //             }
+    // searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+    // filteredData.setPredicate(reclamation -> {
+    // if (newValue == null || newValue.isEmpty()) {
+    // return true;
+    // }
 
-    //             String lowerCaseFilter = newValue.toLowerCase();
+    // String lowerCaseFilter = newValue.toLowerCase();
 
-    //             if (reclamation.getStudentName().toLowerCase().contains(lowerCaseFilter)) {
-    //                 return true;
-    //             }
-    //             if (reclamation.getGroup().toLowerCase().contains(lowerCaseFilter)) {
-    //                 return true;
-    //             }
-    //             if (reclamation.getSession().toLowerCase().contains(lowerCaseFilter)) {
-    //                 return true;
-    //             }
-    //             return false;
-    //         });
-    //     });
+    // if (reclamation.getStudentName().toLowerCase().contains(lowerCaseFilter)) {
+    // return true;
+    // }
+    // if (reclamation.getGroup().toLowerCase().contains(lowerCaseFilter)) {
+    // return true;
+    // }
+    // if (reclamation.getSession().toLowerCase().contains(lowerCaseFilter)) {
+    // return true;
+    // }
+    // return false;
+    // });
+    // });
 
-    //     reclamationsTable.setItems(filteredData);
+    // reclamationsTable.setItems(filteredData);
     // }
 
     private void handleApprove(Reclamation reclamation) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Approve Reclamation");
-        alert.setHeaderText(null);
-        alert.setContentText("Approved reclamation for: " + reclamation.getStudentName());
-        alert.showAndWait();
+
+        try {
+            ReclamationDAO.approveReclamation(reclamation.getStudentName(), reclamation.getDate(),
+                    reclamation.getSession());
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Approve Reclamation");
+            alert.setHeaderText(null);
+            alert.setContentText("Approved reclamation for: " + reclamation.getStudentName());
+            alert.showAndWait();
+            reclamationsList.remove(reclamation);
+        } catch(SQLException e) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("Error: " + e.getMessage());
+            errorAlert.showAndWait();        
+        }
     }
 
-    private void handleEdit(Reclamation reclamation) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Edit Reclamation");
-        alert.setHeaderText(null);
-        alert.setContentText("Editing reclamation for: " + reclamation.getStudentName());
-        alert.showAndWait();
-    }
+    // private void handleEdit(Reclamation reclamation) {
+    //     Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    //     alert.setTitle("Edit Reclamation");
+    //     alert.setHeaderText(null);
+    //     alert.setContentText("Editing reclamation for: " + reclamation.getStudentName());
+    //     alert.showAndWait();
+    // }
 
     private void handleDelete(Reclamation reclamation) {
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
@@ -194,7 +222,17 @@ public class ReclamationsController implements Initializable {
         confirmation.setContentText("Are you sure you want to delete this reclamation?");
 
         if (confirmation.showAndWait().get() == ButtonType.OK) {
-            reclamationsList.remove(reclamation);
+            try {
+                ReclamationDAO.deleteReclamation(reclamation.getStudentName(), reclamation.getDate(),
+                        reclamation.getSession());
+                        reclamationsList.remove(reclamation);
+            } catch(SQLException e) {
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Error");
+                errorAlert.setHeaderText(null);
+                errorAlert.setContentText("Error deleting reclamation: " + e.getMessage());
+                errorAlert.showAndWait();
+            }
         }
     }
 

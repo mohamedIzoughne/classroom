@@ -39,17 +39,55 @@ public class ReclamationDAO {
     // return false;
     // }
     // }
-
-    public static boolean deleteReclamation(int id) {
-        String query = "DELETE FROM reclamations WHERE id = ?";
+    public static boolean approveReclamation(String name, String date, String sessionName) throws SQLException {
+            String updateQuery = "UPDATE attendance SET has_excuse = true WHERE student_name = ? AND date = ? AND session_name = ?";
+            String deleteQuery = "DELETE FROM reclamations WHERE name = ? AND date = ? AND session_name = ?";
+            try (PreparedStatement updatePst = connection.prepareStatement(updateQuery);
+                 PreparedStatement deletePst = connection.prepareStatement(deleteQuery)) {
+                
+                updatePst.setString(1, name);
+                updatePst.setString(2, date);
+                updatePst.setString(3, sessionName);
+                
+                deletePst.setString(1, name);
+                deletePst.setString(2, date);
+                deletePst.setString(3, sessionName);
+                
+                updatePst.executeUpdate();
+                return deletePst.executeUpdate() > 0;
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+    
+    public static boolean deleteReclamation(String name, String date, String sessionName) throws SQLException {
+        String query = "DELETE FROM reclamations WHERE name = ? AND date = ? AND session_name = ?";
         try (PreparedStatement pst = connection.prepareStatement(query)) {
-            pst.setInt(1, id);
+            pst.setString(1, name);
+            pst.setString(2, date);
+            pst.setString(3, sessionName);
             return pst.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
+
+
+    public static int getReclamationsCount() {
+            String query = "SELECT COUNT(*) FROM reclamations";
+            try (PreparedStatement pst = connection.prepareStatement(query)) {
+                ResultSet rs = pst.executeQuery();
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return 0;
+        }
+    
 
     public static List<Reclamation> getAllReclamations(String studentName, String sessionName) {
         List<Reclamation> reclamations = new ArrayList<>();
@@ -69,35 +107,20 @@ public class ReclamationDAO {
         return reclamations;
     }
 
-    public static List<Reclamation> getReclamationsByClass(int sessionId) {
-        List<Reclamation> reclamations = new ArrayList<>();
-        String query = "SELECT * FROM reclamations WHERE session_id = ?";
-        try (PreparedStatement pst = connection.prepareStatement(query)) {
-            pst.setInt(1, sessionId);
-            ResultSet rs = pst.executeQuery();
-            while (rs.next()) {
-                reclamations.add(extractReclamationFromResultSet(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return reclamations;
-    }
-
-    public static List<Reclamation> getReclamationsByDay(String dayOfWeek) throws SQLException {
-        List<Reclamation> reclamations = new ArrayList<>();
-        String query = "SELECT * FROM reclamations WHERE DAYNAME(date) = ?";
-        try (PreparedStatement pst = connection.prepareStatement(query)) {
-            pst.setString(1, dayOfWeek);
-            ResultSet rs = pst.executeQuery();
-            while (rs.next()) {
-                reclamations.add(extractReclamationFromResultSet(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return reclamations;
-    }
+    // public static List<Reclamation> getReclamationsByClass(int sessionId) {
+    //     List<Reclamation> reclamations = new ArrayList<>();
+    //     String query = "SELECT * FROM reclamations WHERE session_id = ?";
+    //     try (PreparedStatement pst = connection.prepareStatement(query)) {
+    //         pst.setInt(1, sessionId);
+    //         ResultSet rs = pst.executeQuery();
+    //         while (rs.next()) {
+    //             reclamations.add(extractReclamationFromResultSet(rs));
+    //         }
+    //     } catch (SQLException e) {
+    //         e.printStackTrace();
+    //     }
+    //     return reclamations;
+    // }
 
     private static Reclamation extractReclamationFromResultSet(ResultSet rs) throws SQLException {
         Reclamation reclamation = new Reclamation();

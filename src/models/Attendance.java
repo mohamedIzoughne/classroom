@@ -1,59 +1,28 @@
 package models;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 
 public class Attendance {
-    private int id;
-    private int studentId;
-    private int sessionId;
-    private boolean status;
-    private int weekNumber;
-    
-    public Attendance() {
+    private String studentName;
+    private double attendance;
+    private BooleanProperty attendant = new SimpleBooleanProperty(false);
+
+    public Attendance(String studentName, double attendance, boolean attendant) {
+        this.studentName = studentName;
+        this.attendance = attendance;
+        this.attendant = new SimpleBooleanProperty(attendant);
     }
-    
-    public Attendance(int studentId, int sessionId, boolean status, int weekNumber) {
-        this.studentId = studentId;
-        this.sessionId = sessionId;
-        this.status = status;
-        this.weekNumber = weekNumber;
+
+    public String getStudentName() {
+        return studentName;
     }
-    
-    public int getId() {
-        return id;
+
+    public double getAttendance() {
+        return attendance;
     }
-    
-    public void setId(int id) {
-        this.id = id;
+
+    public BooleanProperty getAttendant() {
+        return attendant;
     }
-    
-    public int getStudentId() {
-        return studentId;
-    }
-    
-    public void setStudentId(int studentId) {
-        this.studentId = studentId;
-    }
-    
-    public int getSessionId() {
-        return sessionId;
-    }
-    
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
-    }
-    
-    public boolean isStatus() {
-        return status;
-    }
-    
-    public void setStatus(boolean status) {
-        this.status = status;
-    }
-    
-    public int getWeekNumber() {
-        return weekNumber;
-    }
-    
-    public void setWeekNumber(int weekNumber) {
-        this.weekNumber = weekNumber;
-    }
+
 }

@@ -19,7 +19,7 @@
             <AnchorPane layoutX="57.0" layoutY="28.0" prefHeight="46.0" prefWidth="139.0" style="-fx-background-color: E7F0FF;">
                <children>
                   <Label layoutX="31.0" layoutY="6.0" style="-fx-font-weight: bold;" text="Totale de matières" />
-                  <Label layoutX="31.0" layoutY="24.0" text="3" />
+                  <Label fx:id="subjectsNumLabel" layoutX="31.0" layoutY="24.0" text="3" />
                   <ImageView fitHeight="18.0" fitWidth="18.0" layoutX="5.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@images/solar_book-outline.png" />
@@ -45,14 +45,14 @@
                         <Image url="@images/entypo_hour-glass@3x.png" />
                      </image>
                   </ImageView>
-                  <Label layoutX="26.0" layoutY="5.0" style="-fx-font-weight: bold;" text="Nombre d'heures" />
-                  <Label layoutX="26.0" layoutY="23.0" text="8" />
+                  <Label layoutX="26.0" layoutY="5.0" style="-fx-font-weight: bold;" text="Nombre de séances" />
+                  <Label fx:id="sessionsNumLabel" layoutX="26.0" layoutY="23.0" text="8" />
                </children>
             </AnchorPane>
             <AnchorPane layoutX="566.0" layoutY="28.0" prefHeight="46.0" prefWidth="179.0" style="-fx-background-color: E7F0FF;">
                <children>
                   <Label layoutX="31.0" layoutY="5.0" style="-fx-font-weight: bold;" text="Nombre de réclamations" />
-                  <Label layoutX="31.0" layoutY="24.0" text="8" />
+                  <Label fx:id="reclamationsNumLabel" layoutX="31.0" layoutY="24.0" text="8" />
                   <ImageView fitHeight="18.0" fitWidth="18.0" layoutX="5.0" layoutY="13.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@images/solar_document-broken.png" />

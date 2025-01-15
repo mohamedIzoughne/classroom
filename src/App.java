@@ -15,7 +15,7 @@ public class App extends Application {
         primaryStage.setTitle("My Application");
         primaryStage.show();
     }
-    
+
     public static void main(String[] args) {
         launch(args);
     }

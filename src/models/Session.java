@@ -12,6 +12,15 @@ public class Session {
     public Session() {
     }
 
+    public Session(String name, String subjectName, String roomName, String day, String hours, boolean status) {
+        this.name = name;
+        this.subjectName = subjectName;
+        this.roomName = roomName;
+        this.day = day;
+        this.hours = hours;
+        this.status = status;
+    }
+
     public int getId() {
         return id;
     }
@@ -54,6 +63,10 @@ public class Session {
 
     public String getHours() {
         return hours;
+    }
+
+    public boolean getStatus() {
+        return status;
     }
 
     public void setHours(String hours) {

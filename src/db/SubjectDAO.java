@@ -70,6 +70,38 @@ public class SubjectDAO {
 
         return subjects;
     }
+
+    public static List<Subject> getAllSubjects(String className) throws SQLException {
+        List<Subject> subjects = new ArrayList<>();
+        String sql = "SELECT * FROM subjects where class_name = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, className);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                subjects.add(new Subject(
+                    rs.getString("name"),
+                    rs.getString("class_name")
+                    ));
+                }
+        } catch(SQLException e) {
+            System.out.println("The exception: " + e);
+        }
+        System.out.println("The subjects :"+ subjects);
+
+        return subjects;
+    }
+
+    public static int getSubjectCount() throws SQLException {
+            String sql = "SELECT COUNT(*) FROM subjects";
+            try (Statement stmt = connection.createStatement()) {
+                ResultSet rs = stmt.executeQuery(sql);
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+                return 0;
+            }
+    }
+    
 }
 
 // class Subject {
