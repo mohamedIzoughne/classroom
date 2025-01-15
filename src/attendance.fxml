@@ -6,12 +6,11 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
-
 
 <AnchorPane prefHeight="576.0" prefWidth="991.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="AttendanceController">
    <children>
@@ -24,8 +23,8 @@
         </columns>
       </TableView>
       <!-- <TextField layoutX="14.0" layoutY="129.0" prefHeight="39.0" prefWidth="256.0" promptText="  Search..." /> -->
-       <TextField fx:id="searchField" layoutX="14.0" layoutY="129.0"  prefHeight="35.0" prefWidth="180.0" promptText="Search..." />
-     <Button layoutX="188.0" layoutY="129.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="43.0" onAction="#submitHandler">
+       <TextField fx:id="searchField" layoutX="14.0" layoutY="129.0" prefHeight="35.0" prefWidth="180.0" promptText="Search..." />
+     <Button layoutX="188.0" layoutY="129.0" mnemonicParsing="false" onAction="#submitHandler" prefHeight="35.0" prefWidth="43.0">
           <graphic>
              <ImageView fitHeight="21.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
                 <image>
@@ -34,13 +33,13 @@
              </ImageView>
           </graphic>
        </Button>
-      <Label layoutX="27.0" layoutY="90.0" text="week 24" textFill="#454242">
+      <ComboBox fx:id="sessionCombo" layoutX="861.0" layoutY="136.0" prefHeight="25.0" prefWidth="82.0" promptText="Session" />
+      <ComboBox fx:id="classCombo" layoutX="768.0" layoutY="136.0" prefHeight="25.0" prefWidth="74.0" promptText="Class" />
+      <Button fx:id="saveButton" layoutX="902.0" layoutY="462.0" mnemonicParsing="false" onAction="#handleSaveButton" style="-fx-background-color: #4C8CF8;" text="Save" textFill="WHITE" />
+      <Label fx:id="weekNumber" layoutX="14.0" layoutY="86.0" text="week 24" textFill="#454242">
          <font>
             <Font name="System Bold" size="20.0" />
          </font>
       </Label>
-      <ComboBox fx:id="sessionCombo" layoutX="861.0" layoutY="136.0" prefHeight="25.0" prefWidth="82.0" promptText="Session" />
-      <ComboBox fx:id="classCombo" layoutX="768.0" layoutY="136.0" prefHeight="25.0" prefWidth="74.0" promptText="Class" />
-      <Button fx:id="saveButton" layoutX="902.0" layoutY="462.0" mnemonicParsing="false" onAction="#handleSaveButton" style="-fx-background-color: #4C8CF8;" text="Save" textFill="WHITE" />
    </children>
 </AnchorPane>

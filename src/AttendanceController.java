@@ -1,4 +1,7 @@
 import java.sql.SQLException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.List;
 
 import db.AttendanceDAO;
@@ -37,6 +40,8 @@ public class AttendanceController {
     private ComboBox<String> classCombo;
     @FXML
     private TextField searchField;
+    @FXML
+    private Label weekNumber;
 
     @FXML
     void submitHandler() {
@@ -72,6 +77,12 @@ public class AttendanceController {
         attendantColumn.setEditable(true);
         tableView.setEditable(true);
 
+        // Get current week number
+        LocalDate now = LocalDate.now();
+        WeekFields weekFields = WeekFields.of(DayOfWeek.MONDAY, 1);
+        int totalWeeks = now.get(weekFields.weekOfWeekBasedYear());
+
+        weekNumber.setText("Week " + totalWeeks);
         // Load sessions and classes
         try {
             loadSessionsAndClasses();

@@ -94,6 +94,7 @@ public class ConsultStudent {
         tableView.setItems(students);
     }
 
+    Student selected = null;
 
     DaysSchedule schedule = new DaysSchedule("—", "—", "—", "—", "—", "—", "—");
     public void initialize() {
@@ -104,10 +105,40 @@ public class ConsultStudent {
                     if (newSelection != null) {
                         Student selectedStudent = newSelection;
                         String fullName = selectedStudent.getFullName();
+                        selected = selectedStudent;
                         try {
                             Map<String, Integer> scheduleData = AttendanceDAO.getWeeklyAttendanceByStudent(fullName);
-                            System.out.println("Weekly Attendance Data for " + fullName + ":");
-                            System.out.println(scheduleData);
+                            int[] stats = AttendanceDAO.getAttendanceStatistics(selectedStudent);
+                            ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
+                                new PieChart.Data("Presence", stats[0]),
+                                new PieChart.Data("Abscence justifiée",stats[1]),
+                                new PieChart.Data("Abscence non justifiée", stats[2])
+                            );
+                            pieChart1.setData(pieChartData);
+                    
+                            // Calculer les pourcentages et mettre à jour les noms
+                            double total = pieChartData.stream().mapToDouble(PieChart.Data::getPieValue).sum();
+                            pieChartData.forEach(pieData -> {
+                                double percentage = (pieData.getPieValue() / total) * 100;
+                                pieData.setName(pieData.getName() + " (" + String.format("%.1f%%", percentage) + ")");
+                            });
+                    
+                            Text totalText = new Text("Total des étudiants : " + total);
+                            totalText.setStyle("-fx-font-size: 14; -fx-font-style: italic;");
+                    
+                            // Personnaliser les couleurs des segments
+                            pieChartData.get(0).getNode().setStyle("-fx-pie-color: #4C8CF8;"); // Bleu pour "Boys"
+                            pieChartData.get(1).getNode().setStyle("-fx-pie-color: #1FE6D1;"); // Rouge pour "Girls"
+                            pieChartData.get(2).getNode().setStyle("-fx-pie-color: #D0F97E;");
+                    
+                            // Désactiver la légende automatique
+                            pieChart1.setLegendVisible(false);
+                    
+                            // Créer une légende personnalisée
+                            legendBox1.getChildren().clear();
+                            createLegendItem("Presence (" + stats[0] + ")", Color.web("#4C8CF8"));
+                            createLegendItem("Abscence justifiée (" + stats[1] + ")", Color.web("#1FE6D1"));
+                            createLegendItem("Abscence non justifiée (" + stats[2] + ")", Color.web("#D0F97E"));                            // Créer une légende personnalisée
                             schedule = new DaysSchedule(
                                 scheduleData.get("Monday") == 1 ? "✔" : scheduleData.get("Monday") == 0 ? "✘" : "—",
                                 scheduleData.get("Tuesday") == 1 ? "✔" : scheduleData.get("Tuesday") == 0 ? "✘" : "—",
@@ -151,37 +182,8 @@ public class ConsultStudent {
         
         
         // Ajouter des données au PieChart
-        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
-            new PieChart.Data("Presence", 60),
-            new PieChart.Data("Abscence justifiée", 50),
-            new PieChart.Data("Abscence non justifiée", 40)
-        );
-        pieChart1.setData(pieChartData);
-
-        // Calculer les pourcentages et mettre à jour les noms
-        double total = pieChartData.stream().mapToDouble(PieChart.Data::getPieValue).sum();
-        pieChartData.forEach(data -> {
-            double percentage = (data.getPieValue() / total) * 100;
-            data.setName(data.getName() + " (" + String.format("%.1f%%", percentage) + ")");
-        });
-
-        Text totalText = new Text("Total des étudiants : " + total);
-        totalText.setStyle("-fx-font-size: 14; -fx-font-style: italic;");
-
-        // Personnaliser les couleurs des segments
-        pieChartData.get(0).getNode().setStyle("-fx-pie-color: #4C8CF8;"); // Bleu pour "Boys"
-        pieChartData.get(1).getNode().setStyle("-fx-pie-color: #1FE6D1;"); // Rouge pour "Girls"
-        pieChartData.get(2).getNode().setStyle("-fx-pie-color: #D0F97E;");
-
-        // Désactiver la légende automatique
-        pieChart1.setLegendVisible(false);
-
-        // Créer une légende personnalisée
-        legendBox1.getChildren().clear();
-        createLegendItem("Presence (60)", Color.web("#4C8CF8"));
-        createLegendItem("Abscence justifiée (50)", Color.web("#1FE6D1"));
-        createLegendItem("Abscence non justifiée (40)", Color.web("#D0F97E"));
-        // Créer une légende personnalisée
+        
+    
 
 
         // Configurer les colonnes pour utiliser les propriétés de la classe Student
@@ -219,6 +221,7 @@ public class ConsultStudent {
         tableView1.setItems(data);
    
 }
+
 private void createLegendItem(String label, Color color) {
     // Créer un petit cercle pour représenter la couleur
     Circle circle = new Circle(10, color);

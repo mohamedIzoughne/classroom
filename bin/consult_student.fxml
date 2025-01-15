@@ -4,7 +4,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -25,12 +24,6 @@
                   <Font name="System Bold" size="13.12" />
                </font>
             </Label>
-            <MenuButton layoutX="217.0" layoutY="10.0" mnemonicParsing="false" text="Matière">
-              <items>
-                <MenuItem mnemonicParsing="false" text="Action 1" />
-                <MenuItem mnemonicParsing="false" text="Action 2" />
-              </items>
-            </MenuButton>
          </children>
       </AnchorPane>
       <AnchorPane layoutY="14.0" prefHeight="210.0" prefWidth="917.0">
@@ -44,12 +37,12 @@
                <TableColumn fx:id="dobColumn" prefWidth="184.0" text="Date de naissance" />
               </columns>
             </TableView>
-            <MenuButton fx:id="classesMenu"  layoutX="850.0" layoutY="1.0" mnemonicParsing="false" text="Classe" >
+            <MenuButton fx:id="classesMenu" layoutX="850.0" layoutY="1.0" mnemonicParsing="false" text="Classe">
               <items>
               </items>
             </MenuButton>
-            <TextField fx:id="searchField" layoutY="-1.0" prefHeight="30.0" prefWidth="187.0" promptText="Search" onAction="#searchStudentHandler" />
-            <Button onAction="#searchStudentHandler" layoutX="143.0" layoutY="-1.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="43.0">
+            <TextField fx:id="searchField" layoutY="-1.0" onAction="#searchStudentHandler" prefHeight="30.0" prefWidth="187.0" promptText="Search" />
+            <Button layoutX="143.0" layoutY="-1.0" mnemonicParsing="false" onAction="#searchStudentHandler" prefHeight="25.0" prefWidth="43.0">
                <graphic>
                   <ImageView fitHeight="21.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
                      <image>

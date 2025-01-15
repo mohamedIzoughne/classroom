@@ -295,4 +295,63 @@ public class AttendanceDAO {
         return attendances;
 
     }
+
+    
+    public static int[] getAttendanceStatistics(Student student, String subject) throws SQLException {
+        int[] counts = new int[3];
+    
+        String query = "SELECT " +
+                "COUNT(CASE WHEN a.status = 1 THEN 1 END) AS present_count, " +
+                "COUNT(CASE WHEN a.status = 2 THEN 1 END) AS excused_absence_count, " +
+                "COUNT(CASE WHEN a.status = 0 THEN 1 END) AS unexcused_absence_count " +
+                "FROM students s " +
+                "LEFT JOIN attendance a ON s.name = a.student_name " +
+                "LEFT JOIN sessions sess ON a.session_name = sess.name " +
+                "WHERE s.name = ? AND sess.subject = ? " +
+                "GROUP BY s.name";
+    
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, student.getFullName());
+            stmt.setString(2, subject);
+    
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    counts[0] = rs.getInt("present_count");
+                    counts[1] = rs.getInt("excused_absence_count");
+                    counts[2] = rs.getInt("unexcused_absence_count");
+                }
+            }
+        }
+    
+        return counts;
+    }   
+    
+    public static int[] getAttendanceStatistics(Student student) throws SQLException {
+            int[] counts = new int[3];
+        
+            String query = "SELECT " +
+                    "COUNT(CASE WHEN a.status = 1 THEN 1 END) AS present_count, " +
+                    "COUNT(CASE WHEN a.status = 2 THEN 1 END) AS excused_absence_count, " +
+                    "COUNT(CASE WHEN a.status = 0 THEN 1 END) AS unexcused_absence_count " +
+                    "FROM students s " +
+                    "LEFT JOIN attendance a ON s.name = a.student_name " +
+                    "LEFT JOIN sessions sess ON a.session_name = sess.name " +
+                    "WHERE s.name = ? " +
+                    "GROUP BY s.name";
+        
+            try (PreparedStatement stmt = connection.prepareStatement(query)) {
+                stmt.setString(1, student.getFullName());
+        
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        counts[0] = rs.getInt("present_count");
+                        counts[1] = rs.getInt("excused_absence_count");
+                        counts[2] = rs.getInt("unexcused_absence_count");
+                    }
+                }
+            }
+        
+            return counts;
+        }
+    
 }
